@@ -1,0 +1,275 @@
+import {
+  SearchEstacionId, //Servicio que busca si ya existe una Estacion de bombeo por su id
+  getAllMotor, //Servicio que devuelve todos los motores
+  SearchMotorId, //Servicio que busca si ya existe un motor por su id
+  SearchMotorIdEstacion, //Servicio que busca los motores en una Estacion de bombeo
+  getOneMotorForId, //Servicio que devuelve un motor por su id
+  SearchMotorCodigo, //Servicio que busca si ya existe un motor por su codigo
+  RegisterMotor, // Servicio para registrar un Motor
+  deleteOneMotorForId, // Servicio que Elimina el motor con ese id
+  modificarMotor, // Servicio para modiciar un Motor
+  SearchMotorCodigoId, // Servicio que compara el id de un Motor con el codigo
+} from "../../services/motor/motor.service.js";
+
+//FUNCIÓN AUXILIAR DE VALIDACIÓN TÉCNICA
+const validarCamposMotor = (body) => {
+  return (
+    body.num_motor === undefined ||
+    body.posicion_motor === undefined ||
+    !body.codigo_motor ||
+    !body.marca_motor ||
+    !body.tipo_motor ||
+    body.tipo_corriente === undefined ||
+    body.asin_sin === undefined ||
+    body.universal === undefined ||
+    body.soporte_tec === undefined ||
+    body.num_fases === undefined
+  );
+};
+
+export const getMotor = async (req, res) => {
+  try {
+    //se invoca el servicio que devuelve todos los motores
+    const mot = await getAllMotor();
+
+    res.send({
+      status: "ok",
+      description: "Lista de Motores",
+      data: mot,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      description: "Error interno del servidor al obtener los motores",
+    });
+  }
+};
+
+export const getMotorForId = async (req, res) => {
+  try {
+    // se reciben la variable que viene por parametro
+    const id_motor = req.params.id;
+
+    //se invoca el servicio que devuelve el motor con ese id
+    const motor = await getOneMotorForId(id_motor);
+
+    //Se comprueba si ya existe el motor
+    if (!motor || motor.length === 0) {
+      return res.status(404).send({
+        status: "mal",
+        description: "Motor no registrado",
+      });
+    }
+
+    res.send({
+      status: "ok",
+      description: "Motor",
+      data: motor,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      description: "Error interno del servidor al buscar el motor",
+    });
+  }
+};
+
+export const getMotorForIdEstacion = async (req, res) => {
+  try {
+    // se reciben la variable que viene por parametro
+    const id_bombeo = req.params.id;
+
+    //Se comprueba si ya existe la Estaciones de bombeo
+    const search_es = await SearchEstacionId(id_bombeo);
+    if (search_es === 0) {
+      return res.status(404).send({
+        status: "mal",
+        description: "Estación de bombeo no registrada",
+      });
+    }
+
+    //se invoca el servicio que devuelve los motores de esa Estacion de Bombeo
+    const est_motor = await SearchMotorIdEstacion(id_bombeo);
+
+    res.send({
+      status: "ok",
+      description: "Los motores que pertencen a esta Estacion de Bombeo",
+      data: est_motor,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      description: "Error interno del servidor al buscar motores por estación",
+    });
+  }
+};
+
+export const postMotor = async (req, res) => {
+  try {
+    // se reciben la variable que viene por parametro
+    const id_bombeo = req.params.id;
+    //se reciben las variables en el req.body
+    const { body } = req;
+    if (validarCamposMotor(body)) {
+      return res.status(400).send({
+        status: "mal",
+        description:
+          "Faltó ingresar un dato obligatorio en el registro del motor",
+      });
+    }
+
+    //Se comprueba si ya existe la Estaciones de bombeo
+    const search_Es = await SearchEstacionId(id_bombeo);
+    if (search_Es === 0) {
+      return res.status(404).send({
+        status: "mal",
+        description: "Estación de bombeo no registrada",
+      });
+    }
+
+    //Se comprueba si ya existe el motor por el codigo
+    const search_Co = await SearchMotorCodigo(body.codigo_motor);
+    if (search_Co > 0) {
+      return res.status(409).send({
+        status: "mal",
+        description: "Codigo del Motor ya registrado",
+      });
+    }
+
+    //Se crea un objeto para pasarlo mas adelante
+    const motor = {
+      num_motor: body.num_motor,
+      posicion_motor: body.posicion_motor,
+      codigo_motor: body.codigo_motor,
+      marca_motor: body.marca_motor,
+      tipo_motor: body.tipo_motor,
+      tipo_corriente: body.tipo_corriente,
+      asin_sin: body.asin_sin,
+      universal: body.universal,
+      soporte_tec: body.soporte_tec,
+      num_fases: body.num_fases,
+      est_bombeo_id_est: id_bombeo,
+    };
+
+    //se invoca el servicio para registrar un Motor
+    const mo = await RegisterMotor(motor);
+
+    res.status(201).send({
+      status: "ok",
+      description: "Motor registrado correctamente",
+      data: mo,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      description: "Error interno del servidor al registrar el motor",
+    });
+  }
+};
+
+export const deleteMotor = async (req, res) => {
+  try {
+    // se reciben la variable que viene por parametro
+    const id_motor = req.params.id;
+
+    //Se comprueba si ya existe el Motor por su Id
+    const search_mo = await SearchMotorId(id_motor);
+    if (search_mo === 0) {
+      return res.status(404).send({
+        status: "mal",
+        description: "Motor no registrado",
+      });
+    }
+
+    //se invoca el servicio que Elimina el Motor con ese id
+    await deleteOneMotorForId(id_motor);
+
+    res.send({
+      status: "ok",
+      description: "Eliminado el Motor",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      description: "Error interno del servidor al eliminar el motor",
+    });
+  }
+};
+
+export const updateMotor = async (req, res) => {
+  try {
+    // se reciben la variable que viene por parametro
+    const id_motor = req.params.id;
+
+    //se reciben las variables en el req.body
+    const { body } = req;
+
+    if (validarCamposMotor(body)) {
+      return res.status(400).send({
+        status: "mal",
+        description:
+          "Faltó ingresar un dato obligatorio para la actualización del motor",
+      });
+    }
+
+    //Se invoca el servicio que devuelve el motor con ese id
+    const oneMotor = await getOneMotorForId(id_motor);
+
+    //Se comprueba si ya existe el Motor por su Id
+    const search_mo = await SearchMotorId(id_motor);
+    if (!oneMotor || oneMotor.length === 0) {
+      return res.status(404).send({
+        status: "mal",
+        description: "Motor no registrado",
+      });
+    }
+
+    // comprobamos si el código está duplicado si el usuario lo cambió
+    if (body.codigo_motor !== oneMotor[0].codigo_motor) {
+      const search_Co = await SearchMotorCodigo(body.codigo_motor);
+      if (search_Co > 0) {
+        return res.status(409).send({
+          status: "mal",
+          description:
+            "No se puede actualizar: El nuevo código de Motor ya está en uso",
+        });
+      }
+    }
+
+    //Se crea un objeto para pasarlo mas adelante
+    const motorDat = {
+      id_motor: id_motor, // ID necesario para el WHERE en el UPDATE
+      num_motor: body.num_motor,
+      posicion_motor: body.posicion_motor,
+      codigo_motor: body.codigo_motor,
+      marca_motor: body.marca_motor,
+      tipo_motor: body.tipo_motor,
+      tipo_corriente: body.tipo_corriente,
+      asin_sin: body.asin_sin,
+      universal: body.universal,
+      soporte_tec: body.soporte_tec,
+      num_fases: body.num_fases,
+      est_bombeo_id_est: oneMotor[0].est_bombeo_id_est,
+    };
+
+    //se invoca el servicio para Modificar una Estacion de Bombeo
+    const mo = await modificarMotor(motorDat);
+
+    res.send({
+      status: "ok",
+      description: "Motor modificado correctamente",
+      data: mo,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      description: "Error interno del servidor al actualizar el motor",
+    });
+  }
+};
