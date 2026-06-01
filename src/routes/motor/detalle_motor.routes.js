@@ -7,14 +7,36 @@ import {
 } from "../../controllers/motor/detalle_motor.controller.js";
 
 //IMPORTAMOS LOS MIDDLWARE
-
-//no hay mientras
+import { checkAuth, checkRole } from "../../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.get("/detalle_motor/:id", getDetalle_MotorForId);
-router.post("/detalle_motor/add/:id", postDetalle_Motor);
-router.delete("/detalle_motor/delete/:id", deleteDetalle_Motor);
-router.put("/detalle_motor/update/:id", updateDetalle_Motor);
+//RUTAS
+
+//RUTA DE LECTURA (Acceso para todo el personal logueado)
+router.get("/detalle_motor/:id", checkAuth, getDetalle_MotorForId);
+
+//RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
+router.post(
+  "/detalle_motor/add/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  postDetalle_Motor,
+);
+
+router.put(
+  "/detalle_motor/update/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  updateDetalle_Motor,
+);
+
+//RUTA DE ELIMINACIÓN (Estricta: Solo Admin)
+router.delete(
+  "/detalle_motor/delete/:id",
+  checkAuth,
+  checkRole(["admin"]),
+  deleteDetalle_Motor,
+);
 
 export default router;

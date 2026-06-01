@@ -7,14 +7,36 @@ import {
 } from "../../controllers/bomba/detalle_bomba.controller.js";
 
 //IMPORTAMOS LOS MIDDLWARE
-
-//no hay mientras
+import { checkAuth, checkRole } from "../../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.get("/detalle_bomba/:id", getDetalle_BombaForId);
-router.post("/detalle_bomba/add/:id", postDetalle_Bomba);
-router.delete("/detalle_bomba/delete/:id", deleteDetalle_Bomba);
-router.put("/detalle_bomba/update/:id", updateDetalle_Bomba);
+//RUTAS
+
+//RUTA DE LECTURA (Cualquier rol logueado)
+router.get("/detalle_bomba/:id", checkAuth, getDetalle_BombaForId);
+
+//RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
+router.post(
+  "/detalle_bomba/add/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  postDetalle_Bomba,
+);
+
+router.put(
+  "/detalle_bomba/update/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  updateDetalle_Bomba,
+);
+
+//RUTA DE ELIMINACIÓN (Estricta: Solo Admin)
+router.delete(
+  "/detalle_bomba/delete/:id",
+  checkAuth,
+  checkRole(["admin"]),
+  deleteDetalle_Bomba,
+);
 
 export default router;

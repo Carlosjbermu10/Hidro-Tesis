@@ -7,14 +7,36 @@ import {
 } from "../../controllers/ccm/tipo_circuito_ccm.controller.js";
 
 //IMPORTAMOS LOS MIDDLWARE
-
-//no hay mientras
+import { checkAuth, checkRole } from "../../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.get("/circuito_ccm/:id", getCircuito_CCMForId);
-router.post("/circuito_ccm/add/:id", postCircuito_CCM);
-router.delete("/circuito_ccm/delete/:id", deleteCircuito_CCM);
-router.put("/circuito_ccm/update/:id", updateCircuito_CCM);
+//RUTAS
+
+//RUTA DE LECTURA (Acceso para todo el personal logueado)
+router.get("/circuito_ccm/:id", checkAuth, getCircuito_CCMForId);
+
+//RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
+router.post(
+  "/circuito_ccm/add/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  postCircuito_CCM,
+);
+
+router.put(
+  "/circuito_ccm/update/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  updateCircuito_CCM,
+);
+
+//RUTA DE ELIMINACIÓN (Estricta: Solo Admin)
+router.delete(
+  "/circuito_ccm/delete/:id",
+  checkAuth,
+  checkRole(["admin"]),
+  deleteCircuito_CCM,
+);
 
 export default router;

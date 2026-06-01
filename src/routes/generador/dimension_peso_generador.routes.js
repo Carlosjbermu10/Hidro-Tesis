@@ -7,20 +7,40 @@ import {
 } from "../../controllers/generador/dimension_peso_generador.controller.js";
 
 //IMPORTAMOS LOS MIDDLWARE
-
-//no hay mientras
+import { checkAuth, checkRole } from "../../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.get("/dimension_peso_generador/:id", getDimension_Peso_GeneradorForId);
-router.post("/dimension_peso_generador/add/:id", postDimension_Peso_Generador);
-router.delete(
-  "/dimension_peso_generador/delete/:id",
-  deleteDimension_Peso_Generador,
+//RUTAS
+
+//RUTA DE LECTURA (Acceso para todo el personal logueado)
+router.get(
+  "/dimension_peso_generador/:id",
+  checkAuth,
+  getDimension_Peso_GeneradorForId,
 );
+
+//RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
+router.post(
+  "/dimension_peso_generador/add/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  postDimension_Peso_Generador,
+);
+
 router.put(
   "/dimension_peso_generador/update/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
   updateDimension_Peso_Generador,
+);
+
+//RUTA DE ELIMINACIÓN (Estricta: Solo Admin)
+router.delete(
+  "/dimension_peso_generador/delete/:id",
+  checkAuth,
+  checkRole(["admin"]),
+  deleteDimension_Peso_Generador,
 );
 
 export default router;

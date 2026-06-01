@@ -5,7 +5,7 @@ import {
 } from "../../controllers/usuario/register.controller.js";
 
 // Importamos los miiddelwares
-import { checkAuth, checkRole } from "../../middlware/auth.middleware.js";
+import { checkAuth, checkRole } from "../../middleware/auth.middleware.js";
 
 const router = Router();
 

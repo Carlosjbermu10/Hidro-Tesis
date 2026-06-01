@@ -9,16 +9,38 @@ import {
 } from "../../controllers/valvula/valvula.controller.js";
 
 //IMPORTAMOS LOS MIDDLWARE
-
-//no hay mientras
+import { checkAuth, checkRole } from "../../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.get("/valvula", getValvula);
-router.get("/valvula/:id", getValvulaForId);
-router.get("/valvula/estacion/:id", getValvulaForIdEstacion);
-router.post("/valvula/add/:id", postValvula);
-router.delete("/valvula/delete/:id", deleteValvula);
-router.put("/valvula/update/:id", updateValvula);
+//RUTAS DE LECTURA (Acceso para todo el personal logueado)
+router.get("/valvula", checkAuth, getValvula);
+
+router.get("/valvula/:id", checkAuth, getValvulaForId);
+
+router.get("/valvula/estacion/:id", checkAuth, getValvulaForIdEstacion);
+
+//RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
+router.post(
+  "/valvula/add/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  postValvula,
+);
+
+router.put(
+  "/valvula/update/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  updateValvula,
+);
+
+//RUTA DE ELIMINACIÓN (Estricta: Solo Admin)
+router.delete(
+  "/valvula/delete/:id",
+  checkAuth,
+  checkRole(["admin"]),
+  deleteValvula,
+);
 
 export default router;

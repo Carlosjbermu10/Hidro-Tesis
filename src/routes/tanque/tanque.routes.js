@@ -9,16 +9,40 @@ import {
 } from "../../controllers/tanque/tanque.controller.js";
 
 //IMPORTAMOS LOS MIDDLWARE
-
-//no hay mientras
+import { checkAuth, checkRole } from "../../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.get("/tanque", getTanque);
-router.get("/tanque/:id", getTanqueForId);
-router.get("/tanque/estacion/:id", getTanqueForIdEstacion);
-router.post("/tanque/add/:id", postTanque);
-router.delete("/tanque/delete/:id", deleteTanque);
-router.put("/tanque/update/:id", updateTanque);
+//RUTAS
+
+//RUTAS DE LECTURA (Acceso para todo el personal logueado)
+router.get("/tanque", checkAuth, getTanque);
+
+router.get("/tanque/:id", checkAuth, getTanqueForId);
+
+router.get("/tanque/estacion/:id", checkAuth, getTanqueForIdEstacion);
+
+//RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
+router.post(
+  "/tanque/add/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  postTanque,
+);
+
+router.put(
+  "/tanque/update/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  updateTanque,
+);
+
+//RUTA DE ELIMINACIÓN (Estricta: Solo Admin)
+router.delete(
+  "/tanque/delete/:id",
+  checkAuth,
+  checkRole(["admin"]),
+  deleteTanque,
+);
 
 export default router;

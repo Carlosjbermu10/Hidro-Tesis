@@ -9,19 +9,48 @@ import {
 } from "../../controllers/bancoTransformadores/banco_transformadores.controller.js";
 
 //IMPORTAMOS LOS MIDDLWARE
-
-//no hay mientras
+import { checkAuth, checkRole } from "../../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.get("/banco_transformadores", getBanco_transformadores);
-router.get("/banco_transformadores/:id", getBanco_transformadoresForId);
+//RUTAS
+
+//RUTAS DE LECTURA (Cualquier usuario logueado puede ver)
+router.get("/banco_transformadores", checkAuth, getBanco_transformadores);
+
+router.get(
+  "/banco_transformadores/:id",
+  checkAuth,
+  getBanco_transformadoresForId,
+);
+
 router.get(
   "/banco_transformadores/estacion/:id",
+  checkAuth,
   getBanco_transformadoresForIdEstacion,
 );
-router.post("/banco_transformadores/add/:id", postBanco_transformadores);
-router.delete("/banco_transformadores/delete/:id", deleteBanco_transformadores);
-router.put("/banco_transformadores/update/:id", updateBanco_transformadores);
+
+//RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
+router.post(
+  "/banco_transformadores/add/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  postBanco_transformadores,
+);
+
+router.put(
+  "/banco_transformadores/update/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  updateBanco_transformadores,
+);
+
+//RUTA DE ELIMINACIÓN (Estricta: Solo Admin)
+router.delete(
+  "/banco_transformadores/delete/:id",
+  checkAuth,
+  checkRole(["admin"]),
+  deleteBanco_transformadores,
+);
 
 export default router;

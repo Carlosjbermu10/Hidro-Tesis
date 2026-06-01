@@ -9,16 +9,40 @@ import {
 } from "../../controllers/generador/generador.controller.js";
 
 //IMPORTAMOS LOS MIDDLWARE
-
-//no hay mientras
+import { checkAuth, checkRole } from "../../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.get("/generador", getGenerador);
-router.get("/generador/:id", getGeneradorForId);
-router.get("/generador/estacion/:id", getGeneradorForIdEstacion);
-router.post("/generador/add/:id", postGenerador);
-router.delete("/generador/delete/:id", deleteGenerador);
-router.put("/generador/update/:id", updateGenerador);
+//RUTAS
+
+//RUTAS DE LECTURA (Acceso para todo el personal logueado)
+router.get("/generador", checkAuth, getGenerador);
+
+router.get("/generador/:id", checkAuth, getGeneradorForId);
+
+router.get("/generador/estacion/:id", checkAuth, getGeneradorForIdEstacion);
+
+//RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
+router.post(
+  "/generador/add/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  postGenerador,
+);
+
+router.put(
+  "/generador/update/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  updateGenerador,
+);
+
+//RUTA DE ELIMINACIÓN (Estricta: Solo Admin)
+router.delete(
+  "/generador/delete/:id",
+  checkAuth,
+  checkRole(["admin"]),
+  deleteGenerador,
+);
 
 export default router;
