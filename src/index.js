@@ -1,6 +1,7 @@
 import express from "express";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 
 //importamos las variables de entorno
 import { PORT } from "./config.js";
@@ -36,16 +37,31 @@ import loginRoutes from "./routes/usuario/login.routes.js";
 
 const app = express();
 
-// Middlewares necesarios
-//para procesar datos enviados desde el form
-app.use(express.urlencoded({ extended: false }));
+//MIDDLEWARES EN ORDEN DE EJECUCIÓN
+
+//CORS: Permite que tu Frontend en React (puerto 5173) haga peticiones a este Backend sin ser bloqueado por el navegador.
+//credentials: true es vital para que React pueda enviar y recibir las cookies de autenticación (JWT).
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true, // PERMITE EL ENVÍO DE COOKIES (ya que usas cookie-parser)
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  }),
+);
+
+//JSON: Reconoce el objeto de petición entrante como un objeto JSON. Permite que leas los req.body que envíe React.
 app.use(express.json());
+
+//URLENCODED: Procesa y entiende los datos que se envían a través de formularios HTML tradicionales (en caso de usarlos).
+app.use(express.urlencoded({ extended: false }));
+
+//COOKIE-PARSER: Analiza las cookies adjuntas a las peticiones. Permite al Backend leer el token JWT guardado en el navegador de React.
 app.use(cookieParser());
 
-//inicializar morgan
+//MORGAN: Registra en la consola del servidor todas las peticiones HTTP que entran (Método, ruta, estado, tiempo de respuesta). Ideal para desarrollo.
 app.use(morgan("dev"));
 
-//llamar al Router de login
+//LLAMAR A LOS ROUTERS
 app.use(principal);
 app.use(est_bombeoRoutes);
 app.use(detalle_est_bombeoRoutes);
@@ -68,5 +84,7 @@ app.use(tanque_has_generadorRoutes);
 app.use(registerRoutes);
 app.use(loginRoutes);
 
-app.listen(PORT);
-console.log("server running in the port", PORT);
+//ARRANQUE DEL SERVIDOR
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
