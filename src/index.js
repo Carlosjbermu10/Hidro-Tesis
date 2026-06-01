@@ -1,5 +1,6 @@
 import express from "express";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 
 //importamos las variables de entorno
 import { PORT } from "./config.js";
@@ -30,12 +31,16 @@ import dimension_peso_generadorRoutes from "./routes/generador/dimension_peso_ge
 import motor_generadorRoutes from "./routes/generador/motor_generador.routes.js";
 import tanqueRoutes from "./routes/tanque/tanque.routes.js";
 import tanque_has_generadorRoutes from "./routes/tanque/tanque_has_generador.routes.js";
+import registerRoutes from "./routes/usuario/register.routes.js";
+import loginRoutes from "./routes/usuario/login.routes.js";
 
 const app = express();
 
+// Middlewares necesarios
 //para procesar datos enviados desde el form
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(cookieParser());
 
 //inicializar morgan
 app.use(morgan("dev"));
@@ -60,6 +65,8 @@ app.use(dimension_peso_generadorRoutes);
 app.use(motor_generadorRoutes);
 app.use(tanqueRoutes);
 app.use(tanque_has_generadorRoutes);
+app.use(registerRoutes);
+app.use(loginRoutes);
 
 app.listen(PORT);
 console.log("server running in the port", PORT);
