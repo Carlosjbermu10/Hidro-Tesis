@@ -16,6 +16,7 @@ emitter.setMaxListeners(20);*/
 import principal from "../src/routes/principal.routes.js";
 import est_bombeoRoutes from "./routes/EstacionBombeo/est_bombeo.routes.js";
 import detalle_est_bombeoRoutes from "./routes/EstacionBombeo/detalle_est_bombeo.routes.js";
+import est_bombeo_fotosRoutes from "./routes/EstacionBombeo/est_bombeo_fotos.routes.js";
 import motorRoutes from "./routes/motor/motor.routes.js";
 import detalle_motorRoutes from "./routes/motor/detalle_motor.routes.js";
 import bombaRoutes from "./routes/bomba/bomba.routes.js";
@@ -83,6 +84,7 @@ app.use(tanqueRoutes);
 app.use(tanque_has_generadorRoutes);
 app.use(registerRoutes);
 app.use(loginRoutes);
+app.use(est_bombeo_fotosRoutes);
 
 //ARRANQUE DEL SERVIDOR
 app.listen(PORT, () => {
