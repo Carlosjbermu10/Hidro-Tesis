@@ -1,9 +1,9 @@
 import { Router } from "express";
 import {
-  getFoto_Est_Bombeo,
-  postFoto_Est_Bombeo,
-  deleteFoto_Est_Bombeo,
-} from "../../controllers/EstacionBombeo/est_bombeo_fotos.controller.js";
+  getFoto_Tanque,
+  postFoto_Tanque,
+  deleteFoto_Tanque,
+} from "../../controllers/tanque/tanque_fotos.controller.js";
 
 //IMPORTAMOS LOS MIDDLWARE
 
@@ -17,24 +17,24 @@ const router = Router();
 
 //RUTAS
 
-// RUTA DE LECTURA: Permite a cualquier usuario logueado ver las fotos de la estación
-router.get("/foto_Estacion/:id", checkAuth, getFoto_Est_Bombeo);
+// RUTA DE LECTURA: Permite a cualquier usuario logueado ver las fotos del Tanque
+router.get("/foto_tanque/:id", checkAuth, getFoto_Tanque);
 
 // RUTA DE CREACIÓN: Permite a administradores y supervisores subir hasta 5 fotos simultáneas
 router.post(
-  "/foto_Estacion/add/:id",
+  "/foto_tanque/add/:id",
   checkAuth,
   checkRole(["admin", "supervisor"]),
   upload.array("image", 5),
-  postFoto_Est_Bombeo,
+  postFoto_Tanque,
 );
 
 // RUTA DE ELIMINACIÓN: Acción estricta. Solo el administrador puede borrar fotos del sistema
 router.delete(
-  "/foto_Estacion/delete/:id",
+  "/foto_tanque/delete/:id",
   checkAuth,
   checkRole(["admin"]),
-  deleteFoto_Est_Bombeo,
+  deleteFoto_Tanque,
 );
 
 export default router;
