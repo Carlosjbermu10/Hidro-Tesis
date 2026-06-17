@@ -42,6 +42,7 @@ import tanque_has_generadorRoutes from "./routes/tanque/tanque_has_generador.rou
 import tanque_fotosRoutes from "./routes/tanque/tanque_fotos.routes.js";
 import registerRoutes from "./routes/usuario/register.routes.js";
 import loginRoutes from "./routes/usuario/login.routes.js";
+import est_bombeo_reporteRoutes from "./routes/pdf/est_bombeo_reporte.routes.js";
 
 const app = express();
 
@@ -99,6 +100,7 @@ app.use(tanque_has_generadorRoutes);
 app.use(tanque_fotosRoutes);
 app.use(registerRoutes);
 app.use(loginRoutes);
+app.use(est_bombeo_reporteRoutes);
 
 //ARRANQUE DEL SERVIDOR
 app.listen(PORT, () => {

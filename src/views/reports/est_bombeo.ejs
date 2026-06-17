@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ficha Técnica - MINAGUAS / HIDROCARIBE</title>
+    <style>
+        /* CONFIGURACIÓN DE PÁGINA IMPRESA (A4 Horizontal con márgenes limpios) */
+        @page {
+            size: A4 landscape;
+            margin: 10mm; /* Espacio de seguridad perimetral */
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            color: #1e293b;
+        }
+
+        /* Contenedor por cada estación para salto de página limpio */
+        .page-station {
+            page-break-after: always;
+            width: 100%;
+            /* EL GRAN RECUADRO EXTERIOR ÚNICO QUE UNE TODO EL REPORTE */
+            border: 2px solid #005088; 
+            display: flex;
+            flex-direction: column;
+        }
+        .page-station:last-child {
+            page-break-after: avoid;
+        }
+
+        /* --- 1. ESTILOS EXCLUSIVOS DEL ENCABEZADO (Independiente del Cuerpo) --- */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-bottom: 2px solid #005088; /* Línea divisoria inferior */
+        }
+        .header-table td {
+            padding: 8px;
+            vertical-align: middle;
+            border: 1px solid #cbd5e1; /* Bordes suaves internos de control */
+        }
+
+        /* Logo Gobierno (Panorámico arriba) */
+        .head-govt-row {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 5px !important;
+        }
+        .head-govt-row img {
+            /* Limitamos alto para no deformar, ancho auto para aspect ratio */
+            height: 45px; 
+            width: auto; 
+            object-fit: contain;
+        }
+
+        /* Bloque Medio (MinAguas + Título + Meta) */
+        .head-minaguas-cell {
+            width: 20%; /* Ancho dedicado al logo cuadrado */
+            text-align: center;
+        }
+        .head-minaguas-cell img {
+            height: 60px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .head-title-cell {
+            width: 55%; /* Ancho principal para el título */
+            text-align: center;
+            font-weight: bold;
+            font-size: 11pt;
+            color: #005088;
+            text-transform: uppercase;
+        }
+        .station-label {
+            font-size: 8pt;
+            color: #64748b;
+            font-weight: normal;
+        }
+
+        .head-meta-cell {
+            width: 25%; /* Ancho para el bloque de control técnico */
+            padding: 0 !important;
+        }
+        /* Subtabla interna para el bloque de control superior derecho */
+        .meta-subtable {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .meta-subtable td {
+            border: none !important;
+            border-bottom: 1px solid #cbd5e1 !important;
+            padding: 4px 8px !important;
+            font-size: 8pt !important;
+        }
+        .meta-subtable tr:last-child td {
+            border-bottom: none !important;
+        }
+        .lbl-meta { font-weight: bold; color: #005088; text-transform: uppercase; }
+        .val-meta { font-weight: bold; color: #334155; }
+
+
+        /* --- 2. ESTILOS DEL CUERPO TÉCNICO RÍGIDO (Alineación Perfecta) --- */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* Fuerza proporciones exactas de columnas */
+        }
+        .data-table td {
+            border: 1.5px solid #005088; /* Divisiones internas estilo Excel */
+            padding: 8px 12px;
+            font-size: 9.5pt;
+            vertical-align: middle;
+            word-wrap: break-word;
+        }
+
+        /* ETIQUETAS TÉCNICAS (Celdas Azules Izquierdas) */
+        .lbl-tech {
+            background-color: #005088;
+            color: #ffffff;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 8.5pt;
+            letter-spacing: 0.3px;
+        }
+        .val-tech {
+            background-color: #ffffff;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        /* SEPARADORES DE SECCIÓN INTERNOS (Líneas Turquesas) */
+        .section-divider {
+            background-color: #11caa0;
+            color: #ffffff;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-align: center;
+            font-size: 10.5pt;
+            letter-spacing: 1px;
+            padding: 5px !important;
+        }
+
+        /* FORMATOS CONDICIONALES / ESTADOS */
+        .status-positive { color: #10b981; font-weight: bold; }
+        .status-highlight { color: #005088; font-weight: bold; }
+
+        /* Clases utilitarias de alineación */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        
+        /* PIE DE PÁGINA INTEGRADO AL FINAL DEL CUADRO ÚNICO */
+        .footer-note {
+            margin-top: auto; /* Empuja al final del contenedor maestro */
+            border-top: 1px solid #cbd5e1;
+            padding: 6px 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 7.5pt;
+            color: #94a3b8;
+            font-style: italic;
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+
+    <% if (estaciones.length === 0) { %>
+        <div style="text-align: center; padding: 50px; font-size: 14pt; border: 2px dashed #005088; border-radius: 8px; color: #005088;">
+            <strong>AVISO:</strong> NO SE ENCONTRARON REGISTROS DE ESTACIONES DE BOMBEO PARA GENERAR EL REPORTE.
+        </div>
+    <% } else { %>
+        <% estaciones.forEach((estacion) => { %>
+            
+            <div class="page-station">
+                
+                <table class="header-table">
+                    <tr>
+                        <td colspan="3" class="head-govt-row">
+                            <% if (logoGobierno) { %>
+                                <img src="<%= logoGobierno %>" alt="Gobierno Bolivariano">
+                            <% } %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="head-minaguas-cell">
+                            <% if (logoMinaguas) { %>
+                                <img src="<%= logoMinaguas %>" alt="MinAguas">
+                            <% } %>
+                        </td>
+                        <td class="head-title-cell">
+                            <span class="station-label">ESTACIÓN DE BOMBEO:</span><br>
+                            <%= estacion.nombre_est %>
+                        </td>
+                        <td class="head-meta-cell">
+                            <table class="meta-subtable">
+                                <tr>
+                                    <td class="lbl-meta">Código:</td>
+                                    <td class="val-meta text-right" style="color: #11caa0;"><%= estacion.codigo || 'N/A' %></td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl-meta">Hidrológica:</td>
+                                    <td class="val-meta text-right" style="font-size: 7.5pt;">HIDROCARIBE</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl-meta">F. Emisión:</td>
+                                    <td class="val-meta text-right" style="font-size: 7pt;"><%= fecha %></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+
+                <table class="data-table">
+                    <colgroup>
+                        <col style="width: 25%;">
+                        <col style="width: 25%;">
+                        <col style="width: 25%;">
+                        <col style="width: 25%;">
+                    </colgroup>
+
+                    <tr>
+                        <td class="lbl-tech">NOMBRE DEL SISTEMA</td>
+                        <td colspan="3" class="val-tech status-highlight" style="font-size: 10.5pt;"><%= estacion.nombre_sistema %></td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-tech">NOMBRE DE LA ESTACIÓN DE BOMBEO</td>
+                        <td colspan="3" class="val-tech" style="font-size: 10.5pt;"><%= estacion.nombre_est %></td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-tech">TIPO DE ESTACIÓN DE BOMBEO:</td>
+                        <td class="val-tech text-center"><%= estacion.tipo_est || 'NO ESPECIFICADO' %></td>
+                        <td class="lbl-tech">TIPO DE SUCCIÓN:</td>
+                        <td class="val-tech text-center">
+                            <% if (estacion.tipo_succion === 1) { %> 
+                                <span class="status-positive">POSITIVA (Tanque)</span> 
+                            <% } else if (estacion.tipo_succion === 0) { %> 
+                                <span style="color:#ef4444; font-weight:bold;">NEGATIVA</span> 
+                            <% } else { %> 
+                                <span style="color:#94a3b8;">-</span> 
+                            <% } %>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="4" class="section-divider">IDENTIFICACIÓN Y GEOLOCALIZACIÓN</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-tech">UBICACIÓN / LOCALIDAD:</td>
+                        <td class="val-tech" style="font-size: 8.5pt;"><%= estacion.ubicacion || 'N/A' %></td>
+                        <td class="lbl-tech">COORDENADAS (UTM):</td>
+                        <td class="val-tech" style="font-family: monospace; font-size: 9pt;">
+                            <strong>N:</strong> <%= estacion.coordenada_norte || '-' %><br>
+                            <strong>E:</strong> <%= estacion.coordenada_este || '-' %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-tech">MUNICIPIO:</td>
+                        <td class="val-tech"><%= estacion.municipio || 'N/A' %></td>
+                        <td class="lbl-tech">COORDENADAS GPS:</td>
+                        <td class="val-tech text-center" style="font-family: monospace;"><%= estacion.coordenada_gps || '-' %></td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-tech">COTA DE LA ESTACIÓN DE BOMBEO:</td>
+                        <td class="val-tech"><%= estacion.cota ? estacion.cota + ' M.S.N.M.' : '-' %></td>
+                        <td class="lbl-tech">POBLACION BENEFICIADA (HAB):</td>
+                        <td class="val-tech status-highlight">
+                            <%= estacion.poblacion_bene !== null ? estacion.poblacion_bene.toLocaleString('es-ES') + ' HAB.' : '0 HAB.' %>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="4" class="section-divider">PARÁMETROS OPERATIVOS Y CAPACIDAD LOGÍSTICA</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-tech">CAUDAL DE DISEÑO DEL PROYECTO:</td>
+                        <td class="val-tech status-highlight"><%= estacion.caudal_diseño || '-' %> L/S</td>
+                        <td class="lbl-tech">CAUDAL DE DISEÑO A LA SALIDA:</td>
+                        <td class="val-tech"><%= estacion.caudal_diseño_salida !== null ? estacion.caudal_diseño_salida + ' L/S' : '-' %></td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-tech">CAUDAL DE DISEÑO ENTRADA:</td>
+                        <td class="val-tech"><%= estacion.caudal_diseño_entrada !== null ? estacion.caudal_diseño_entrada + ' L/S' : '-' %></td>
+                        <td class="lbl-tech">CONSUMO EN (KW):</td>
+                        <td class="val-tech status-highlight"><%= estacion.consumo !== null ? estacion.consumo + ' KW' : '-' %></td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-tech">CAUDAL ACTUAL DE OPERACIÓN:</td>
+                        <td class="val-tech status-positive"><%= estacion.caudal_operacion !== null ? estacion.caudal_operacion + ' L/S' : '-' %></td>
+                        <td class="lbl-tech">LÍNEA DE BOMBEO:</td>
+                        <td class="val-tech"><%= estacion.linea_bombeo !== null ? 'Línea ' + estacion.linea_bombeo : '-' %></td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-tech">ADUCCIÓN A LA ESTACIÓN:</td>
+                        <td class="val-tech text-center status-highlight">
+                            <%= estacion.aduccion === 0 ? 'GRAVEDAD (X)' : (estacion.aduccion === 1 ? 'BOMBEO (X)' : '-') %>
+                        </td>
+                        <td class="lbl-tech">GRUPO DE BOMBEO:</td>
+                        <td class="val-tech"><%= estacion.grupo_bombeo !== null ? 'Grupo ' + estacion.grupo_bombeo : '-' %></td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-tech">SISTEMA DE BOMBEO:</td>
+                        <td class="val-tech text-center status-highlight">
+                            <%= estacion.sistema_bombeo === 1 ? 'PARALELO (X)' : (estacion.sistema_bombeo === 0 ? 'SERIE (X)' : '-') %>
+                        </td>
+                        <td class="val-tech text-right matrix-footer-text" style="background-color: #f8fafc; font-size: 7.5pt; color: #64748b; font-style: italic;">
+                            Control Técnico e Inspección.
+                        </td>
+                    </tr>
+                </table>
+
+                <footer class="footer-note">
+                    <div>Ficha de Control Interno — Registro Estación ID: #<%= estacion.id_est %></div>
+                    <div>Sistema de Gestión Hidrocaribe</div>
+                </footer>
+
+            </div>
+        <% }) %>
+    <% } %>
+
+</body>
+</html>
