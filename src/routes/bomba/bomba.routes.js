@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   getBomba,
   getBombaForId,
-  getBombaForIdEstacion,
+  getBombaForIdLineaBombeo,
   postBomba,
   deleteBomba,
   updateBomba,
@@ -20,7 +20,7 @@ router.get("/bomba", checkAuth, getBomba);
 
 router.get("/bomba/:id", checkAuth, getBombaForId);
 
-router.get("/bomba/estacion/:id", checkAuth, getBombaForIdEstacion);
+router.get("/bomba/linea_bombeo/:id", checkAuth, getBombaForIdLineaBombeo);
 
 //RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
 router.post(

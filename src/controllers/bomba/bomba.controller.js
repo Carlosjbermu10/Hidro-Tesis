@@ -1,8 +1,8 @@
 import {
-  SearchEstacionId, //Servicio que busca si ya existe una Estacion de bombeo por su id
+  SearchLinea_BombeoId, //Servicio que busca si ya existe una Linea de bombeo por su id
   getAllBomba, //Servicio que devuelve todos las Bombas
   SearchBombaId, //Servicio que busca si ya existe un motor por su id
-  SearchBombaIdEstacion, //Servicio que busca las bombas en una Estacion de bombeo
+  SearchBombaIdLineaBombeo, //Servicio que busca las bombas en una Linea de bombeo
   getOneBombaForId, //Servicio que devuelve una Bomba por su id
   RegisterBomba, // Servicio para registrar una Bomba
   deleteOneBombaForId, // Servicio que Elimina la Bomba con ese id
@@ -12,7 +12,6 @@ import {
 //FUNCIÓN AUXILIAR DE VALIDACIÓN TÉCNICA
 const validarCamposBomba = (body) => {
   return (
-    body.posicion_bomba === undefined ||
     !body.modelo_bomba ||
     !body.marca_bomba ||
     !body.tipo_bomba ||
@@ -45,7 +44,7 @@ export const getBombaForId = async (req, res) => {
     // se reciben la variable que viene por parametro
     const id_bomba = req.params.id;
 
-    //se invoca el servicio que devuelve el motor con ese id
+    //se invoca el servicio que devuelve la Bomba con ese id
     const bomba = await getOneBombaForId(id_bomba);
 
     //Se comprueba si ya existe la Bomba
@@ -70,26 +69,26 @@ export const getBombaForId = async (req, res) => {
   }
 };
 
-export const getBombaForIdEstacion = async (req, res) => {
+export const getBombaForIdLineaBombeo = async (req, res) => {
   try {
     // se reciben la variable que viene por parametro
-    const id_bomba = req.params.id;
+    const id_linea_bombeo = req.params.id;
 
-    //Se comprueba si ya existe la Estaciones de bombeo
-    const search_es = await SearchEstacionId(id_bomba);
-    if (search_es === 0) {
+    //Se comprueba si ya existe la Linea de bombeo
+    const search_li = await SearchLinea_BombeoId(id_linea_bombeo);
+    if (search_li === 0) {
       return res.status(404).send({
         status: "mal",
-        description: "Estación de bombeo no registrada",
+        description: "Linea de bombeo no registrada",
       });
     }
 
-    //se invoca el servicio que devuelve las Bombas de esa Estacion de Bombeo
-    const est_bomba = await SearchBombaIdEstacion(id_bomba);
+    //se invoca el servicio que devuelve las Bombas de esa Linea de bombeo
+    const est_bomba = await SearchBombaIdLineaBombeo(id_linea_bombeo);
 
     res.send({
       status: "ok",
-      description: "Las Bombas que pertencen a esta Estacion de Bombeo",
+      description: "Las Bombas que pertencen a esta Linea de bombeo",
       data: est_bomba,
     });
   } catch (error) {
@@ -104,7 +103,7 @@ export const getBombaForIdEstacion = async (req, res) => {
 export const postBomba = async (req, res) => {
   try {
     // se reciben la variable que viene por parametro
-    const id_bombeo = req.params.id;
+    const id_linea_bombeo = req.params.id;
 
     //se reciben las variables en el req.body
     const { body } = req;
@@ -116,24 +115,23 @@ export const postBomba = async (req, res) => {
       });
     }
 
-    //Se comprueba si ya existe la Estacion de bombeo
-    const search_Es = await SearchEstacionId(id_bombeo);
-    if (search_Es === 0) {
+    //Se comprueba si ya existe la Linea de bombeo
+    const search_li = await SearchLinea_BombeoId(id_linea_bombeo);
+    if (search_li === 0) {
       return res.status(404).send({
         status: "mal",
-        description: "Estación de bombeo no registrada",
+        description: "Linea de bombeo no registrada",
       });
     }
 
     //Se crea un objeto para pasarlo mas adelante
     const bomba = {
-      posicion_bomba: body.posicion_bomba,
       modelo_bomba: body.modelo_bomba,
       marca_bomba: body.marca_bomba,
       tipo_bomba: body.tipo_bomba,
       q: body.q,
       num_etapa: body.num_etapa,
-      est_bombeo_id_est: id_bombeo,
+      linea_bombeo_id_linea_bombeo: id_linea_bombeo,
     };
 
     //se invoca el servicio para registrar una Bomba
@@ -213,13 +211,12 @@ export const updateBomba = async (req, res) => {
     //Se crea un objeto para pasarlo mas adelante
     const bomba = {
       id_bomba: id_bomba,
-      posicion_bomba: body.posicion_bomba,
       modelo_bomba: body.modelo_bomba,
       marca_bomba: body.marca_bomba,
       tipo_bomba: body.tipo_bomba,
       q: body.q,
       num_etapa: body.num_etapa,
-      est_bombeo_id_est: oneBomba[0].est_bombeo_id_est,
+      linea_bombeo_id_linea_bombeo: oneBomba[0].linea_bombeo_id_linea_bombeo,
     };
 
     //se invoca el servicio para Modificar una Bomba
@@ -232,11 +229,9 @@ export const updateBomba = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .send({
-        status: "error",
-        description: "Error interno del servidor al actualizar la bomba",
-      });
+    res.status(500).send({
+      status: "error",
+      description: "Error interno del servidor al actualizar la bomba",
+    });
   }
 };

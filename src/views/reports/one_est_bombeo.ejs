@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ficha Técnica - MINAGUAS / HIDROCARIBE</title>
+    <style>
+        /* CONFIGURACIÓN DE PÁGINA IMPRESA (A4 Horizontal con márgenes limpios) */
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            color: #1e293b;
+        }
+
+        /* Contenedor por cada hoja para salto de página limpio */
+        .page-station {
+            page-break-after: always;
+            width: 100%;
+            /* EL GRAN RECUADRO EXTERIOR ÚNICO QUE UNE TODO EL REPORTE */
+            border: 2px solid #005088; 
+            display: flex;
+            flex-direction: column;
+        }
+        .page-station:last-child {
+            page-break-after: avoid;
+        }
+
+        /* --- ESTILOS DEL ENCABEZADO --- */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-bottom: 2px solid #005088;
+        }
+        .header-table td {
+            padding: 8px;
+            vertical-align: middle;
+            border: 1px solid #cbd5e1;
+        }
+        .head-govt-row {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 5px !important;
+        }
+        .head-govt-row img {
+            height: 45px; 
+            width: auto; 
+            object-fit: contain;
+        }
+        .head-minaguas-cell {
+            width: 20%;
+            text-align: center;
+        }
+        .head-minaguas-cell img {
+            height: 60px;
+            width: auto;
+            object-fit: contain;
+        }
+        .head-title-cell {
+            width: 55%;
+            text-align: center;
+            font-weight: bold;
+            font-size: 11pt;
+            color: #005088;
+            text-transform: uppercase;
+        }
+        .station-label {
+            font-size: 8pt;
+            color: #64748b;
+            font-weight: normal;
+        }
+        .head-meta-cell {
+            width: 25%;
+            padding: 0 !important;
+        }
+        .meta-subtable {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .meta-subtable td {
+            border: none !important;
+            border-bottom: 1px solid #cbd5e1 !important;
+            padding: 4px 8px !important;
+            font-size: 8pt !important;
+        }
+        .meta-subtable tr:last-child td { border-bottom: none !important; }
+        .lbl-meta { font-weight: bold; color: #005088; text-transform: uppercase; }
+        .val-meta { font-weight: bold; color: #334155; }
+
+        /* --- ESTILOS DEL CUERPO TÉCNICO --- */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        .data-table td {
+            border: 1.5px solid #005088;
+            padding: 8px 12px; /* Reducido levemente para que quepan 20 items */
+            font-size: 9.5pt;
+            vertical-align: middle;
+            word-wrap: break-word;
+        }
+        .lbl-tech {
+            background-color: #005088;
+            color: #ffffff;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 8.5pt;
+            letter-spacing: 0.3px;
+        }
+        .val-tech {
+            background-color: #ffffff;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .section-divider {
+            background-color: #11caa0;
+            color: #ffffff;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-align: center;
+            font-size: 10.5pt;
+            letter-spacing: 1px;
+            padding: 5px !important;
+        }
+
+        /* FORMATOS CONDICIONALES / ESTADOS */
+        .status-positive { color: #10b981; font-weight: bold; }
+        .status-highlight { color: #005088; font-weight: bold; }
+
+        /* Clases utilitarias de alineación */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        
+        .footer-note {
+            margin-top: auto;
+            border-top: 1px solid #cbd5e1;
+            padding: 6px 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 7.5pt;
+            color: #94a3b8;
+            font-style: italic;
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+
+    <% 
+        const renderHeader = (paginaNum, totalPaginas) => `
+        <table class="header-table">
+            <tr>
+                
+                <td colspan="3" class="head-govt-row">
+                    ${logoGobierno ? `<img src="${logoGobierno}" alt="Gobierno">` : ''}
+                </td>
+            </tr>
+            <tr>
+                <td class="head-minaguas-cell">
+                    ${logoMinaguas ? `<img src="${logoMinaguas}" alt="MinAguas">` : ''}
+                </td>
+                <td class="head-title-cell">
+                    <span class="station-label">ESTACIÓN DE BOMBEO:</span><br>
+                    ${data.estacion.nombre_est}, EDO. NUEVA ESPARTA
+                </td>
+                <td class="head-meta-cell">
+                    <table class="meta-subtable">
+                        <tr>
+                            <td class="lbl-meta">Código:</td>
+                            <td class="val-meta text-right" style="color: #11caa0;">${data.estacion.codigo || 'N/A'}</td>
+                        </tr>
+                        <tr>
+                            <td class="lbl-meta">Hidrológica:</td>
+                            <td class="val-meta text-right">HIDROCARIBE</td>
+                        </tr>
+                        <tr>
+                            <td class="lbl-meta">Sección:</td>
+                            <td class="val-meta text-right">${paginaNum} de ${totalPaginas}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        `;
+    %>
+
+    <div class="page-station">
+        <%- renderHeader(1, 8) %>
+        <table class="data-table">
+
+            <colgroup>
+                <col style="width: 25%;">
+                <col style="width: 25%;">
+                <col style="width: 25%;">
+                <col style="width: 25%;">
+            </colgroup>
+
+            <tr>
+                <td class="lbl-tech">NOMBRE DEL SISTEMA</td>
+                <td colspan="3" class="val-tech status-highlight" style="font-size: 10.5pt;">
+                    <%=data.estacion.nombre_sistema || 'N/A'%>
+                </td>
+            </tr>
+            <tr>
+                <td class="lbl-tech">NOMBRE DE LA ESTACIÓN DE BOMBEO</td>
+                <td colspan="3" class="val-tech" style="font-size: 10.5pt;"><%=data.estacion.nombre_est || 'N/A'%></td>
+            </tr>
+            <tr>
+                <td class="lbl-tech">TIPO DE ESTACIÓN DE BOMBEO:</td>
+                <td class="val-tech text-center"><%= data.estacion.tipo_est || 'NO ESPECIFICADO' %></td>
+                <td class="lbl-tech">TIPO DE SUCCIÓN:</td>
+                <td class="val-tech text-center">
+                <% if (data.estacion.tipo_succion === 1) { %> 
+                    <span class="status-positive">POSITIVA (Tanque)</span> 
+                <% } else if (data.estacion.tipo_succion === 0) { %> 
+                    <span style="color:#ef4444; font-weight:bold;">NEGATIVA</span> 
+                <% } else { %> 
+                    <span style="color:#94a3b8;">-</span> 
+                <% } %>
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="4" class="section-divider">IDENTIFICACIÓN Y GEOLOCALIZACIÓN</td>
+            </tr>
+            <tr>
+                <td class="lbl-tech">UBICACIÓN / LOCALIDAD:</td>
+                <td class="val-tech" style="font-size: 8.5pt;"><%= data.estacion.ubicacion || 'N/A' %></td>
+                <td class="lbl-tech">COORDENADAS (UTM):</td>
+                <td class="val-tech" style="font-family: monospace; font-size: 9pt;">
+                    <strong>N:</strong> <%= data.estacion.coordenada_norte || '-' %><br>
+                    <strong>E:</strong> <%= data.estacion.coordenada_este || '-' %>
+                </td>
+            </tr>
+            <tr>
+                <td class="lbl-tech">MUNICIPIO:</td>
+                <td class="val-tech"><%= data.estacion.municipio || 'N/A' %></td>
+                <td class="lbl-tech">COORDENADAS GPS:</td>
+                <td class="val-tech text-center" style="font-family: monospace;"><%= data.estacion.coordenada_gps || '-' %></td>
+            </tr>
+            <tr>
+                <td class="lbl-tech">COTA DE LA ESTACIÓN DE BOMBEO:</td>
+                <td class="val-tech"><%= data.estacion.cota ? data.estacion.cota + ' M.S.N.M.' : '-' %></td>
+                <td class="lbl-tech">POBLACION BENEFICIADA (HAB):</td>
+                <td class="val-tech status-highlight">
+                    <%= data.estacion.poblacion_bene !== null ? data.estacion.poblacion_bene.toLocaleString('es-ES') + ' HAB.' : '0 HAB.' %>
+                </td>
+            </tr> 
+            <tr>
+                <td colspan="4" class="section-divider">PARÁMETROS OPERATIVOS Y CAPACIDAD LOGÍSTICA</td>
+            </tr>
+            <tr>
+                <td class="lbl-tech">CAUDAL DE DISEÑO DEL PROYECTO:</td>
+                <td class="val-tech status-highlight"><%= data.estacion.caudal_diseño || '-' %> L/S</td>
+                <td class="lbl-tech">CAUDAL DE DISEÑO A LA SALIDA:</td>
+                <td class="val-tech"><%= data.estacion.caudal_diseño_salida !== null ? data.estacion.caudal_diseño_salida + ' L/S' : '-' %></td>
+            </tr>
+            <tr>
+                <td class="lbl-tech">CAUDAL DE DISEÑO ENTRADA:</td>
+                <td class="val-tech"><%= data.estacion.caudal_diseño_entrada !== null ? data.estacion.caudal_diseño_entrada + ' L/S' : '-' %></td>
+                <td class="lbl-tech">CONSUMO EN (KW):</td>
+                <td class="val-tech status-highlight"><%= data.estacion.consumo !== null ? data.estacion.consumo + ' KW' : '-' %></td>
+            </tr>
+            <tr>
+                <td class="lbl-tech">CAUDAL ACTUAL DE OPERACIÓN:</td>
+                <td class="val-tech status-positive"><%= data.estacion.caudal_operacion !== null ? data.estacion.caudal_operacion + ' L/S' : '-' %></td>
+                <td class="lbl-tech">LÍNEA DE BOMBEO:</td>
+                <td class="val-tech"><%= data.estacion.linea_bombeo !== null ? 'Línea ' + data.estacion.linea_bombeo : '-' %></td>
+            </tr>
+            <tr>
+                <td class="lbl-tech">ADUCCIÓN A LA ESTACIÓN:</td>
+                <td class="val-tech text-center status-highlight">
+                    <%= data.estacion.aduccion === 0 ? 'GRAVEDAD (X)' : (data.estacion.aduccion === 1 ? 'BOMBEO (X)' : '-') %>
+                </td>
+                <td class="lbl-tech">GRUPO DE BOMBEO:</td>
+                <td class="val-tech"><%= data.estacion.grupo_bombeo !== null ? 'Grupo ' + data.estacion.grupo_bombeo : '-' %></td>
+            </tr>
+            <tr>
+                <td class="lbl-tech">SISTEMA DE BOMBEO:</td>
+                <td class="val-tech text-center status-highlight">
+                    <%= data.estacion.sistema_bombeo === 1 ? 'PARALELO (X)' : (data.estacion.sistema_bombeo === 0 ? 'SERIE (X)' : '-') %>
+                </td>
+                <td class="val-tech text-right matrix-footer-text" style="background-color: #f8fafc; font-size: 7.5pt; color: #64748b; font-style: italic;">
+                    Control Técnico e Inspección.
+                </td>
+            </tr>
+        </table>
+        <footer class="footer-note">
+            <div>Ficha Técnica de Control Interno</div>
+            <div>Fecha de emisión: <%= fechaReporte %></div>
+        </footer>
+    </div>
+
+    <% if (data.lineas_bombeo && data.lineas_bombeo.length > 0) { %>
+        <% data.lineas_bombeo.forEach((linea, index) => { %>
+        <div class="page-station">
+            <%- renderHeader(2, 8) %>
+            <table class="data-table">
+                <tr>
+                    <td colspan="4" class="section-divider">LINEA DE BOMBEO Nº<%= index + 1 %></td>
+                </tr>
+            </table>
+            <table class="data-table">
+                <colgroup>
+                    <col style="width: 35%;">
+                    <col style="width: 15%;">
+                    <col style="width: 35%;">
+                    <col style="width: 15%;">
+                </colgroup>
+
+                <tr>
+                    <td class="lbl-tech">NUMEROS DE LINEAS DE BOMBEO Nº:</td>
+                    <td colspan="3" class="val-tech status-highlight" style="font-size: 10.5pt;">
+                        <%= linea.numero_linea || 'NO ESPECIFICADO' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">NOMBRE DE LINEA DE BOMBEO</td>
+                    <td colspan="3" class="val-tech status-highlight" style="font-size: 10.5pt;">
+                        <%= linea.nombre_linea_bombeo %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">ESTADO DE LINEA DE BOMBEO</td>
+                    <td colspan="3" class="val-tech status-highlight" style="font-size: 10.5pt;">
+                        <%= linea.estado_linea_bombeo || '1' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">OBSERVACIONES DE LA LINEA DE BOMBEO</td>
+                    <td colspan="3" class="val-tech status-highlight" style="font-size: 10.5pt;">
+                        <%= linea.observaciones_linea_bombeo || '-' %>
+                    </td>
+                </tr>
+                
+            </table>
+            <footer class="footer-note"><div>Registro de Equipos de Impulsión</div></footer>
+        </div>
+        <% }) %>
+    <% } %>
+
+    <% if (data.bombas && data.bombas.length > 0) { %>
+        <% data.bombas.forEach((bomba, index) => { %>
+        <div class="page-station">
+            <%- renderHeader(3, 8) %>
+            <table class="data-table">
+                <tr>
+                    <td colspan="4" class="section-divider">BOMBA Nº<%= index + 1 %></td>
+                </tr>
+            </table>
+            <table class="data-table">
+                <colgroup>
+                    <col style="width: 35%;">
+                    <col style="width: 15%;">
+                    <col style="width: 35%;">
+                    <col style="width: 15%;">
+                </colgroup>
+
+                <tr>
+                    <td class="lbl-tech" style="background-color: #003366;">LINEA DE BOMBEO Nº:</td>
+                    <td colspan="3" class="val-tech status-highlight" style="font-size: 10.5pt;">
+                        <%= bomba.numero_linea || 'NO ESPECIFICADO' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">MODELO</td>
+                    <td class="val-tech"><%= bomba.modelo_bomba %></td>
+                    <td class="lbl-tech">MARCA</td>
+                    <td class="val-tech"><%= bomba.marca_bomba || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">TIPO</td>
+                    <td class="val-tech"><%= bomba.tipo_bomba || '-' %></td>
+                    <td class="lbl-tech">Q  (L/SEG)</td>
+                    <td class="val-tech"><%= bomba.q ? bomba.q + ' L/SEG' : '-' %></td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="section-divider">ESPECIFICACIONES TÉCNICAS DE LA BOMBA Nº<%= index + 1 %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">1 - No. ETAPA</td>
+                    <td class="val-tech"><%= bomba.num_etapa || '-' %></td>
+                    <td class="lbl-tech">2 - POTENCIA NOMINAL DE LA BOMBA (HP)</td>
+                    <td class="val-tech"><%= bomba.pot_nom_bomba_hp ? bomba.pot_nom_bomba_hp + ' HP' : '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">3 - PRESIÓN DESCARGA (P.S.I.)</td>
+                    <td class="val-tech"><%= bomba.presion_descarga ? bomba.presion_descarga + ' P.S.I.' : '-' %></td>
+                    <td class="lbl-tech">4 - ALTURA DE ELEVACIÓN DE LA BOMBA (H) (M)</td>
+                    <td class="val-tech"><%= bomba.alt_elevacion_bomba ? bomba.alt_elevacion_bomba + ' H M' : '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">5 - VELOCIDAD NOMINAL DE LA BOMBA (RPM)</td>
+                    <td class="val-tech"><%= bomba.vel_nom_bomba_rpm ? bomba.vel_nom_bomba_rpm + ' RPM' : '-' %></td>
+                    <td class="lbl-tech">6 - DIMENSIONES DEL IMPULSOR</td>
+                    <td class="val-tech"><%= bomba.dimensiones_impulsor || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">7 - DIAMETRO DE SUCCIÓN. (D)</td>
+                    <td class="val-tech"><%= bomba.diametro_succion ? bomba.diametro_succion + ' D' : '-' %></td>
+                    <td class="lbl-tech">8 - DIAMETRO DE DESCARGA. (D)</td>
+                    <td class="val-tech"><%= bomba.diametro_carga ? bomba.diametro_carga + ' D' : '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">9 - PESO DE LA BOMBA</td>
+                    <td class="val-tech"><%= bomba.peso_bomba || '-' %></td>
+                    <td class="lbl-tech">10 - ACOPLAMIENTO</td>
+                    <td class="val-tech">
+                        <%=bomba.acomplamiento === 0 ? 'NO' : (bomba.acomplamiento === 1 ? 'SI' : '-')%>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">11 - TIPO DE ACOPLE</td>
+                    <td class="val-tech"><%= bomba.tipo_acople || '-' %></td>
+                    <td class="lbl-tech">12 - TIPO DE CABEZAL</td>
+                    <td class="val-tech"><%= bomba.tipo_cabezal || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">13 - DIAMETRO DE SUCCIÓN DEL CABEZAL. (D)</td>
+                    <td class="val-tech"><%= bomba.diametro_succion_cabezal ? bomba.diametro_succion_cabezal + ' D' : '-' %></td>
+                    <td class="lbl-tech">14 - DIAMETRO DE DESCARGA DEL CABEZAL. (D)</td>
+                    <td class="val-tech"><%= bomba.diametro_descarga_cabezal ? bomba.diametro_descarga_cabezal + ' D' : '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">15 - LUBRICACIÓN</td>
+                    <td class="val-tech">
+                        <%=bomba.lubricacion === 0 ? 'NO' : (bomba.lubricacion === 1 ? 'SI' : '-')%>
+                    </td>
+                    <td class="lbl-tech">16 - RODAMIENTO / COJINETE</td>
+                    <td class="val-tech">
+                        <%= bomba.rodamiento === 0 ? 'NO' : (bomba.rodamiento === 1 ? 'SI' : '-')%>
+                    </td>
+                </tr>
+            </table>
+            <footer class="footer-note"><div>Registro de Equipos de Impulsión</div></footer>
+        </div>
+        <% }) %>
+    <% } %>
+
+    <% if (data.motores && data.motores.length > 0) { %>
+        <% data.motores.forEach((motor, index) => { %>
+        <div class="page-station">
+            <%- renderHeader(4, 8) %>
+            <table class="data-table">
+                <tr><td colspan="4" class="section-divider">MOTOR Nº<%= index + 1 %></td></tr>                             
+                </tr>
+            </table>
+            
+            <table class="data-table">
+                <colgroup>
+                    <col style="width: 35%;">
+                    <col style="width: 15%;">
+                    <col style="width: 35%;">
+                    <col style="width: 15%;">
+                </colgroup>
+                <tr>
+                    <td class="lbl-tech" style="background-color: #003366;">LÍNEA DE BOMBEO Nº</td>
+                    <td colspan="3" class="val-tech status-highlight" style="font-size: 10.5pt;">
+                        <%= motor.numero_linea || '-' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">CÓDIGO DEL MOTOR (SERIE)</td>
+                    <td class="val-tech"><%= motor.codigo_motor || 'N/C' %></td>
+                    <td class="lbl-tech">MARCA (FABRICANTE)</td>
+                    <td class="val-tech"><%= motor.marca_motor || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">CORRIENTE CONTINUA</td>
+                    <td class="val-tech">
+                        <%= motor.tipo_corriente === 0 ? '(X)' : '-' %>
+                    </td>
+                    <td class="lbl-tech">CORRIENTE ALTERNA</td>
+                    <td class="val-tech">
+                        <%= motor.tipo_corriente === 1 ? '(X)' : '-' %>
+                    </td>
+                </tr>
+                <% if (motor && motor.tipo_corriente === 1) { %>
+                    <tr>
+                    <td colspan="4" class="section-divider">ESPECIFICACIONES DE LA CORRIENTE ALTERNA</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-tech">MONOFÁSICO</td>
+                        <td class="val-tech">
+                            <%= motor.mono_tri === 0 ? '(X)' : '-' %>
+                        </td>
+                        <td class="lbl-tech">TRIFÁSICO</td>
+                        <td class="val-tech">
+                            <%= motor.mono_tri === 1 ? '(X)' : '-' %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-tech">ASINCRONICO</td>
+                        <td class="val-tech">
+                            <%= motor.asin_sin === 0 ? '(X)' : '-' %>
+                        </td>
+                        <td class="lbl-tech">SINCRONICO</td>
+                        <td class="val-tech">
+                            <%= motor.asin_sin === 1 ? '(X)' : '-' %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="lbl-tech">UNIVERSAL</td>
+                        <td class="val-tech">
+                            <%= motor.universal === 1 ? '(SI)' : '-' %>
+                        </td>
+                        <td class="lbl-tech">SOPORTES TECNICOS</td>
+                        <td class="val-tech">
+                            <%= motor.soporte_tec === 1 ? '(SI)' : '-' %>
+                        </td>
+                    </tr>
+                <% } %>
+                <tr>
+                    <td colspan="4" class="section-divider">ESPECIFICACIONES TÉCNICAS DEL MOTOR Nº<%= index + 1 %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">1 - MODELO (TIPO)</td>
+                    <td class="val-tech"><%= motor.tipo_motor %></td>
+                    <td class="lbl-tech">2 - POTENCIA NOMINAL (HP)</td>
+                    <td class="val-tech"><%= motor.pot_nom_motor_hp ? motor.pot_nom_motor_hp + ' HP' : '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">3 - POTENCIA NOMINAL (KW)</td>
+                    <td class="val-tech"><%= motor.pot_nom_motor_kw || '-' %></td>
+                    <td class="lbl-tech">4 - TENSIÓN NOMINAL DE OPERACIÓN (V)</td>
+                    <td class="val-tech"><%= motor.tens_nom_operacion_v ? motor.tens_nom_operacion_v + ' V' : '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">5 - CORRIENTE NOMINAL (AMP)</td>
+                    <td class="val-tech"><%= motor.tens_nom_operacion_amp ? motor.tens_nom_operacion_amp + ' AMP' : '-' %></td>
+                    <td class="lbl-tech">6 - NÚMERO DE FASES</td>
+                    <td class="val-tech"><%= motor.num_fases || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">7 - EFICIENCIA (%)</td>
+                    <td class="val-tech"><%= motor.eficencia ? motor.eficencia + ' %' : '-' %></td>
+                    <td class="lbl-tech">8 - VELOCIDAD NOMINAL (RPM)</td>
+                    <td class="val-tech"><%= motor.vel_nom_motor_rpm ? motor.vel_nom_motor_rpm + ' RPM' : '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">9 - TAMAÑO DE CARCAZA (FRAME)</td>
+                    <td class="val-tech"><%= motor.tam_carcaza || '-' %></td>
+                    <td class="lbl-tech">10 - FRECUENCIA (HZ)</td>
+                    <td class="val-tech"><%= motor.frecuencia ? motor.frecuencia + ' HZ' : '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">11 - FACTOR DE POTENCIA (%)</td>
+                    <td class="val-tech"><%= motor.factor_potencia ? motor.factor_potencia + ' %' : '-' %></td>
+                    <td class="lbl-tech">12 - FACTOR DE SERVICIO</td>
+                    <td class="val-tech"><%= motor.factor_servicio || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">13 - CLASE DE AISLAMIENTO</td>
+                    <td class="val-tech"><%= motor.tipo_aislamiento || '-' %></td>
+                    <td class="lbl-tech">14 - GRADO DE PROTECCIÓN</td>
+                    <td class="val-tech"><%= motor.grado_proteccion || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">15 - TEMPERATURA AMBIENTE MÁX. (°C)</td>
+                    <td class="val-tech"><%= motor.temp_ambiente_max ? motor.temp_ambiente_max + ' °C' : '-' %></td>
+                    <td class="lbl-tech">16 - PESO DEL MOTOR</td>
+                    <td class="val-tech"><%= motor.peso_motor || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">17 - ALTITUD AMBIENTE MÁXIMA. (m)</td>
+                    <td class="val-tech"><%= motor.altitud_ambiente_max ? motor.altitud_ambiente_max + ' m' : '-' %></td>
+                    <td class="lbl-tech">28 - RODAMIENTOS</td>
+                    <td class="val-tech"><%= motor.rodamiento || '-' %></td>
+                </tr>
+            </table>
+            <footer class="footer-note"><div>Registro de Motores</div></footer>
+        </div>
+        <% }) %>
+    <% } %>
+
+    <% if (data.valvulas && data.valvulas.length > 0) { %>
+        <% data.valvulas.forEach((valvula, index) => { %>
+        <div class="page-station">
+            <%- renderHeader(5, 8) %>
+            <table class="data-table">
+                <tr>
+                    <td colspan="4" class="section-divider">VALVULA Nº<%= index + 1 %></td>
+                </tr>
+            </table>
+            <table class="data-table">
+                <colgroup>
+                    <col style="width: 35%;">
+                    <col style="width: 15%;">
+                    <col style="width: 35%;">
+                    <col style="width: 15%;">
+                </colgroup>
+
+                <tr>
+                    <td class="lbl-tech" style="background-color: #003366;">LINEA DE BOMBEO Nº:</td>
+                    <td colspan="3" class="val-tech status-highlight" style="font-size: 10.5pt;">
+                        <%= valvula.numero_linea || 'NO ESPECIFICADO' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">1 - MODELO</td>
+                    <td class="val-tech"><%= valvula.modelo_valvula %></td>
+                    <td class="lbl-tech">2 - MARCA</td>
+                    <td class="val-tech"><%= valvula.marca_valvula || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">3 - TIPO</td>
+                    <td class="val-tech"><%= valvula.tipo_valvula || '-' %></td>
+                    <td class="lbl-tech">4 - PN</td>
+                    <td class="val-tech"><%= valvula.pn || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">5 - NORMA DE LA BRIDA</td>
+                    <td class="val-tech"><%= valvula.norma_brida || '-' %></td>
+                    <td class="lbl-tech">6 - CLASE</td>
+                    <td class="val-tech"><%= valvula.clase_valvula || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">7 - DIAMETRO DEL TORNILLO</td>
+                    <td class="val-tech"><%= valvula.diametro_tornillo || '-' %></td>
+                    <td class="lbl-tech">8 - LONGITUD DEL TORNILLO</td>
+                    <td class="val-tech"><%= valvula.longitud_tornillo ? valvula.longitud_tornillo + ' "' : '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">9 - GRADO DEL TORNILLO</td>
+                    <td class="val-tech"><%= valvula.grado_tornillo || '-' %></td>
+                    <td class="lbl-tech">10 - TIPO DE ASIENTO</td>
+                    <td class="val-tech"><%= valvula.tipo_asiento || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">11 - TIPO DE COMPUERTA</td>
+                    <td colspan="3" class="val-tech status-highlight" style="font-size: 10.5pt;">
+                        <%= valvula.tipo_compuerta ||'-' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">12 - FORMA DE OPERACIÓN</td>
+                    <td colspan="3" class="val-tech status-highlight" style="font-size: 10.5pt;">
+                        <%= valvula.forma_operacion || '-' %>
+                    </td>
+                </tr>
+                
+            </table>
+            <footer class="footer-note"><div>Registro de Equipos de Impulsión</div></footer>
+        </div>
+        <% }) %>
+    <% } %>
+
+    <% if (data.ccm && data.ccm.length > 0) { %>
+        <% data.ccm.forEach((unccm, index) => { %>
+        <div class="page-station">
+            <%- renderHeader(6, 8) %>
+            <table class="data-table">
+
+                <tr>
+                    <td colspan="4" class="section-divider">CENTRO DE CONTROL DE MAQUINAS (CCM) Nº<%= index + 1 %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">TIPO DE CENTRO DE CONTROL DE MOTORES</td>
+                    <td class="lbl-tech text-center">CONVENCIONAL</td><td class="val-tech">
+                        <%= unccm.tipo_ccm === 0 ? 'X' : '' %>
+                    </td>
+                    <td class="lbl-tech text-center">INTELIGENTE</td><td class="val-tech">
+                        <%= unccm.tipo_ccm === 1 ? 'X' : '' %>
+                    </td>
+                </tr>
+                
+            </table>
+
+            <table class="data-table">
+
+                <colgroup>
+                    <col style="width: 35%;">
+                    <col style="width: 15%;">
+                    <col style="width: 35%;">
+                    <col style="width: 15%;">
+                </colgroup>
+
+                <tr>
+                    <td class="lbl-tech">ARRANCADORES DE ESTADO SOLIDO</td>
+                    <td class="val-tech">
+                        <%= unccm.arran_estado_solido === 0 ? 'NO' : (unccm.arran_estado_solido === 1 ? 'SI' : '-')%>
+                    </td>
+                    <td class="lbl-tech">VARIADORES DE VELOCIDAD</td>
+                    <td class="val-tech">
+                        <%= unccm.varia_veloc === 0 ? 'NO' : (unccm.varia_veloc === 1 ? 'SI' : '-')%>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">MEDIDORES</td>
+                    <td class="val-tech">
+                        <%= unccm.medidor === 0 ? 'NO' : (unccm.medidor === 1 ? 'SI' : '-')%>
+                    </td>
+                    <td class="lbl-tech">PROGRAMADORES LÓGICO PROGRAMABLES (PLC)</td>
+                    <td class="val-tech">
+                        <%= unccm.plc === 0 ? 'NO' : (unccm.plc === 1 ? 'SI' : '-')%>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">RELE DE CONTROL</td>
+                    <td class="val-tech">
+                        <%= unccm.rele_contro === 0 ? 'NO' : (unccm.rele_contro === 1 ? 'SI' : '-')%>
+                    </td>
+                    <td class="lbl-tech">SUPRESORES DE PICO (TVSS)</td>
+                    <td class="val-tech">
+                        <%= unccm.supre_pico === 0 ? 'NO' : (unccm.supre_pico === 1 ? 'SI' : '-')%>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">TRANFORMADORES DE DISTRIBUCIÓN</td>
+                    <td class="val-tech">
+                        <%= unccm.transf_distri === 0 ? 'NO' : (unccm.transf_distri === 1 ? 'SI' : '-')%>
+                    </td>
+                    <td class="lbl-tech">PROTECCIÓN DE FALLA DE TIERRA</td>
+                    <td class="val-tech">
+                        <%= unccm.prot_falla_tierra === 0 ? 'NO' : (unccm.prot_falla_tierra === 1 ? 'SI' : '-')%>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="section-divider">TIPO DE CIRCUITO QUE PRESENTA EL CENTRO DE CONTROL DE MAQUINAS (CCM) Nº<%= index + 1 %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">1 - ENTRADAS Y SALIDAS DE CABLES</td>
+                    <td class="val-tech"><%= unccm.e_s_cables || '-' %></td>
+                    <td class="lbl-tech">2 - CLASE DE TENSIÓN</td>
+                    <td class="val-tech"><%= unccm.clase_tension || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">3 - TENSIÓN NOMINAL DE LA RED</td>
+                    <td class="val-tech">
+                        <%= unccm.tension_nominal_red ? unccm.tension_nominal_red + ' V' : '-' %>
+                    </td>
+                    <td class="lbl-tech">4 - TENSIÓN DE MANDO</td>
+                    <td class="val-tech">
+                        <%= unccm.tension_mando ? unccm.tension_mando + ' V' : '-' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">5 - FRECUENCIA NOMINAL (Hz)</td>
+                    <td class="val-tech">
+                        <%= unccm.frecuencia_nominal ? unccm.frecuencia_nominal + ' Hz' : '-' %>
+                    </td>
+                    <td class="lbl-tech">6 - CORRIENTE NOMINAL(V)</td>
+                    <td class="val-tech">
+                        <%= unccm.corriente_nominal ? unccm.corriente_nominal + ' V' : '-' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">7 - CORRIENTE DE CORTA DURACIÓN</td>
+                    <td class="val-tech"><%= unccm.corriente_corta_duracion || '-' %></td>
+                    <td class="lbl-tech">8 - NIVEL BÁSICO DE AISLAMIENTO (NBI)</td>
+                    <td class="val-tech">
+                        <%= unccm.nbi ? unccm.nbi + ' V' : '-' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">9 - TEMPERATURA AMBIENTE (°C)</td>
+                    <td class="val-tech">
+                        <%= unccm.temp_ambiente ? unccm.temp_ambiente + ' °C' : '-' %>
+                    </td>
+                    <td class="lbl-tech">10 - INTERRUPTOR PRINCIPAL (AMP)</td>
+                    <td class="val-tech">
+                        <%= unccm.interruptor_principal ? unccm.interruptor_principal + ' AMP' : '-' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">11 - ELEVACIÓN DE TEMPERATURA (°C)</td>
+                    <td class="val-tech">
+                        <%= unccm.elevacion_temp ? unccm.elevacion_temp + ' °C' : '-' %>
+                    </td>
+                    <td class="lbl-tech">12 - BARRA RAMALES</td>
+                    <td class="val-tech">
+                        <%= unccm.barra_ramales || '-' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">13 - ALTITUD MÁXIMA (M)</td>
+                    <td class="val-tech">
+                        <%= unccm.altitud_max ? unccm.altitud_max + ' M' : '-' %>
+                    </td>
+                    <td class="lbl-tech">14 - VOLTAJE DE AISLAMIENTO (V)</td>
+                    <td class="val-tech">
+                        <%= unccm.voltaje_aislamiento ? unccm.voltaje_aislamiento + ' V' : '-' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">15 - BARRAS PRINCIPALES CON PRINCIPAL</td>
+                    <td class="val-tech"><%= unccm.barras_principales || '-' %></td>
+                    <td class="lbl-tech">16 - CAPACIDAD DEL CORTO CIRCUITO (Kva)</td>
+                    <td class="val-tech">
+                        <%= unccm.cap_corto_circuito ? unccm.cap_corto_circuito + ' Kva' : '-' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">17 - BARRAS</td>
+                    <td class="val-tech"><%= unccm.barras || '-' %></td>
+                    <td class="lbl-tech">18 - VOLTAJE DE TRABAJO (V)</td>
+                    <td class="val-tech">
+                        <%= unccm.voltaje_trabajo ? unccm.voltaje_trabajo + ' V' : '-' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">19 - VOLTAJE DE CONTROL (V)</td>
+                    <td class="val-tech">
+                        <%= unccm.voltaje_control ? unccm.voltaje_control + ' V' : '-' %>
+                    </td>
+                    <td class="lbl-tech">20 - CAPACIDAD DE INTERRUPCIÓN MÁXIMA (Kva)</td>
+                    <td class="val-tech">
+                        <%= unccm.cap_interrupcion_max ? unccm.cap_interrupcion_max + ' Kva' : '-' %>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="4" class="section-divider">JUEGOS DE CONTACTOS QUE PRESENTA EL CENTRO DE CONTROL DE MAQUINAS (CCM) Nº<%= index + 1 %></td>
+                </tr>
+
+                <tr>
+                    <td class="lbl-tech">BIPOLAR</td>
+                    <td class="val-tech">
+                        <%= unccm.bipolar === 0 ? 'NO' : (unccm.bipolar === 1 ? 'SI' : '-')%>
+                    </td>
+                    <td class="lbl-tech">TRIPOLAR</td>
+                    <td class="val-tech">
+                        <%= unccm.tripolar === 0 ? 'NO' : (unccm.tripolar === 1 ? 'SI' : '-')%>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">TETRAPOLAR</td>
+                    <td class="val-tech">
+                        <%= unccm.tetrapolar === 0 ? 'NO' : (unccm.tetrapolar === 1 ? 'SI' : '-')%>
+                    </td>
+                    <td class="lbl-tech">PENTAPOLAR</td>
+                    <td class="val-tech">
+                        <%= unccm.pentapolar === 0 ? 'NO' : (unccm.pentapolar === 1 ? 'SI' : '-')%>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="section-divider">TIPO DE ARRANCADORES QUE PRESENTA EL CENTRO DE CONTROL DE MAQUINAS (CCM) Nº<%= index + 1 %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">1 - CIRCUITO DE ENTRADA Y SALIDA</td>
+                    <td class="val-tech">
+                        <%= unccm.c_e_s === 0 ? 'NO' : (unccm.c_e_s === 1 ? 'SI' : '-')%>
+                    </td>
+                    <td class="lbl-tech">2 - CIRCUITO DE ARRANQUE ESTRELLA - TRIANGULO</td>
+                    <td class="val-tech">
+                        <%= unccm.c_a_estrella_triangulo === 0 ? 'NO' : (unccm.c_a_estrella_triangulo === 1 ? 'SI' : '-')%>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">3 - CIRCUITO DE ARRANQUE DIRECTO</td>
+                    <td class="val-tech">
+                        <%= unccm.c_a_directo === 0 ? 'NO' : (unccm.c_a_directo === 1 ? 'SI' : '-')%>
+                    </td>
+                    <td class="lbl-tech">4 - CIRCUITO DE ARRANQUE CON  REVERSIÓN</td>
+                    <td class="val-tech">
+                        <%= unccm.c_a_con_reversion === 0 ? 'NO' : (unccm.c_a_con_reversion === 1 ? 'SI' : '-')%>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">5 - CIRCUITO DE ARRANQUE SIN REVERSIÓN</td>
+                    <td class="val-tech">
+                        <%= unccm.c_a_sin_reversion === 0 ? 'NO' : (unccm.c_a_sin_reversion === 1 ? 'SI' : '-')%>
+                    </td>
+                    <td class="lbl-tech">6 - CIRCUITO DE ARRANQUE COMPENSADO POR AUTORANSFORMADOR</td>
+                    <td class="val-tech">
+                        <%= unccm.c_a_compen_transformador === 0 ? 'NO' : (unccm.c_a_compen_transformador === 1 ? 'SI' : '-')%>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">7 - CIRCUITO DE ARRANQUE CON ARRANCADOR SUAVE</td>
+                    <td class="val-tech">
+                        <%= unccm.c_a_arrancador_suave === 0 ? 'NO' : (unccm.c_a_arrancador_suave === 1 ? 'SI' : '-')%>
+                    </td>
+                    <td class="lbl-tech">8 - CIRCUITO CON CONVERTIDOR DE FRECUENCIA</td>
+                    <td class="val-tech">
+                        <%= unccm.c_convertidor_frecuencia === 0 ? 'NO' : (unccm.c_convertidor_frecuencia === 1 ? 'SI' : '-')%>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">9 - BOBINAS MAGNÉTICAS</td>
+                    <td class="val-tech">
+                        <%= unccm.bobinas_magneticas === 0 ? 'NO' : (unccm.bobinas_magneticas === 1 ? 'SI' : '-')%>
+                    </td>
+                    <td class="lbl-tech">10 - FUSIBLE</td>
+                    <td class="val-tech">
+                        <%= unccm.fusible === 0 ? 'NO' : (unccm.fusible === 1 ? 'SI' : '-')%>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">11 - INTERRUPTOR</td>
+                    <td class="val-tech">
+                        <%= unccm.interruptor === 0 ? 'NO' : (unccm.interruptor === 1 ? 'SI' : '-')%>
+                    </td>
+                    <td class="lbl-tech">12 - INTERRUPTOR CON LIMITADOR DE CORRIENTE</td>
+                    <td class="val-tech">
+                        <%= unccm.interruptor_limitador_corriente === 0 ? 'NO' : (unccm.interruptor_limitador_corriente === 1 ? 'SI' : '-')%>
+                    </td>
+                </tr>
+            </table>
+            <footer class="footer-note"><div>Registro de Sistema Eléctrico</div></footer>
+        </div>
+        <% }) %>
+    <% } %>
+
+    <% if (data.transformadores && data.transformadores.length > 0) { %>
+    <% data.transformadores.forEach((trans, index) => { %>
+        <div class="page-station">
+            <%- renderHeader(7, 8) %>
+            <table class="data-table">
+                <tr>
+                    <td colspan="4" class="section-divider">
+                        ESPECIFICACIONES TÉCNICAS DE BANCO DE TRANSFORMADORES N° <%= index + 1 %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">1 - TIPO</td>
+                    <td class="val-tech"><%= trans.tipo || 'BARRIL' %></td>
+                    <td class="lbl-tech">2 - NORMA</td>
+                    <td class="val-tech"><%= trans.norma || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">3 - POTENCIA NOMINAL (KVA)</td>
+                    <td class="val-tech">
+                        <%= trans.potencia_nominal ? trans.potencia_nominal + ' Kva' : '-' %>
+                    </td>
+                    <td class="lbl-tech">4 - AÑO</td>
+                    <td class="val-tech"><%= trans.año || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">5 - NIVEL DE AISLAMIENTO (KV)</td>
+                    <td class="val-tech">
+                        <%= trans.nivel_aislamiento ? trans.nivel_aislamiento + ' Kv' : '-' %>
+                    </td>
+                    <td class="lbl-tech">6 - Nº DE FASES</td>
+                    <td class="val-tech"><%= trans.num_fases || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">7 - FRECUENCIA (HZ)</td>
+                    <td class="val-tech">
+                        <%= trans.frecuencia ? trans.frecuencia + ' HZ' : '-' %>
+                    </td>
+                    <td class="lbl-tech">8 - CLASE DE AISLAMIENTO</td>
+                    <td class="val-tech"><%= trans.clase_aislamiento || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">9 - TENSIÓN PRIMARIA (KV)</td>
+                    <td class="val-tech">
+                        <%= trans.tension_primaria ? trans.tension_primaria + ' KV' : '-' %>
+                    </td>
+                    <td class="lbl-tech">10 - TENSIÓN SECUNDARIA (V)</td>
+                    <td class="val-tech"><%= trans.tension_secundaria ? trans.tension_secundaria + ' V' : '-'  %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">11 - CONEXIÓN</td>
+                    <td class="val-tech">
+                        <%= trans.conexion === 0 ? 'NO' : (trans.conexion === 1 ? 'SI' : '-')%>
+                    </td>
+                    <td class="lbl-tech">12 - CORRIENTE PRIMARIA (A)</td>
+                    <td class="val-tech"><%= trans.corriente_primaria ? trans.corriente_primaria + ' A' : '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">13 - CORRIENTE SECUNDARIA (A)</td>
+                    <td class="val-tech">
+                        <%= trans.corriente_secundaria ? trans.corriente_secundaria + ' A' : '-' %>
+                    </td>
+                    <td class="lbl-tech">14 - REFRIGERACIÓN</td>
+                    <td class="val-tech">
+                        <%= trans.refrigeracion === 0 ? 'NO' : (trans.refrigeracion === 1 ? 'SI' : '-')%>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">15 - TENSIÓN C. C. %</td>
+                    <td class="val-tech"><%= trans.tension_c_c ? trans.tension_c_c + ' %' : '-' %></td>
+                    <td class="lbl-tech">16 - PESO ACT (KG)</td>
+                    <td class="val-tech"><%= trans.peso_act ? trans.peso_act + ' Kg' : '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">17 - TIPO DE ACEITE</td>
+                    <td class="val-tech"><%= trans.tipo_aceite || '-' %></td>
+                    <td class="lbl-tech">18 - TEMPERATURA AMBIENTE (°C)</td>
+                    <td class="val-tech"><%= trans.temp_ambiente ? trans.temp_ambiente + ' °C' : '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">19 - PESO TOTAL (KG)</td>
+                    <td class="val-tech"><%= trans.peso_total ? trans.peso_total + ' Kg' : '-' %></td>
+                    <td class="lbl-tech">20 - VOLUMEN DE ACEITE TOTAL (LTS)</td>
+                    <td class="val-tech"><%= trans.vol_aceite_total ? trans.vol_aceite_total + ' Lts' : '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">21 - IMPEDANCIA EN VOLTIOS</td>
+                    <td class="val-tech"><%= trans.impedancia_voltios ? trans.impedancia_voltios + ' V' : '-' %></td>
+                    <td class="lbl-tech">22 - CALENTAMIENTO (°C)</td>
+                    <td class="val-tech"><%= trans.calentamiento ? trans.calentamiento + ' °C' : '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">23 - MARCA</td>
+                    <td class="val-tech"><%= trans.marca || '-' %></td>
+                    <td class="lbl-tech">24 - FABRICADO EN</td>
+                    <td class="val-tech"><%= trans.lugar_fabricado || '-' %></td>
+                </tr>
+            </table>
+            <footer class="footer-note"><div>Registro de Transformadores - Página <%= index + 1 %></div></footer>
+        </div>
+        <% }) %>
+    <% } %>
+
+    <% if (data.generadores && data.generadores.length > 0) { %>
+    <% data.generadores.forEach((gen, index) => { %>
+        <% if (index > 0) { %>
+            <div style="page-break-before: always;"></div>
+        <% } %>   
+            <%- renderHeader(8, 8) %>
+
+            <table class="data-table">
+                <tr>
+                    <td colspan="4" class="section-divider">
+                        GENERADOR N° <%= index + 1 %> - (PLANTA ELÉCTRICA) ESPECIFICACIONES TÉCNICAS
+                    </td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">POTENCIA PRINCIPAL (KW / KVA)</td>
+                    <td class="val-tech"><%= gen.potencia_principal || '-' %></td>
+                    <td class="lbl-tech">REVOLUCIÓN (RPM)</td>
+                    <td class="val-tech"><%= gen.revolucion || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">VOLTAJE (VOLTS)</td>
+                    <td class="val-tech"><%= gen.voltaje || '-' %></td>
+                    <td class="lbl-tech">FASE</td>
+                    <td class="val-tech"><%= gen.fase || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">CABLEADO</td>
+                    <td class="val-tech"><%= gen.cableado || '-' %></td>
+                    <td class="lbl-tech">FACTOR DE POTENCIA</td>
+                    <td class="val-tech"><%= gen.factor_potencia || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">CORRIENTE (AMP)</td>
+                    <td class="val-tech"><%= gen.corriente || '-' %></td>
+                    <td class="lbl-tech">CONEXIÓN</td>
+                    <td class="val-tech"><%= gen.conexion || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">FRECUENCIA</td>
+                    <td class="val-tech"><%= gen.frecuencia || '-' %> Hz</td>
+                    <td class="lbl-tech">RODAMIENTO</td>
+                    <td class="val-tech"><%= gen.rodamiento || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">CLASE DE PROTECCIÓN</td>
+                    <td class="val-tech"><%= gen.clase_proteccion || '-' %></td>
+                    <td class="lbl-tech">CLASE DE AISLAMIENTO</td>
+                    <td class="val-tech"><%= gen.clase_aislamiento || '-' %>°C</td>
+                </tr>
+            </table>
+
+            <table class="data-table" style="margin-top: 10px;">
+                <tr>
+                    <td colspan="4" class="section-divider">DATOS GENERALES DEL MOTOR</td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">MODELO DEL MOTOR</td>
+                    <td class="val-tech"><%= gen.modelo || '-' %></td>
+                    <td class="lbl-tech">MARCA</td>
+                    <td class="val-tech"><%= gen.marca || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">ASPIRACIÓN</td>
+                    <td class="val-tech"><%= gen.aspiracion || '-' %></td>
+                    <td class="lbl-tech">REFRIGERACIÓN</td>
+                    <td class="val-tech"><%= gen.refrigeracion === 1 ? 'Por Agua / Radiador' : (gen.refrigeracion || '-') %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">N° DE CILINDROS</td>
+                    <td class="val-tech"><%= gen.num_cilindros || '-' %></td>
+                    <td class="lbl-tech">DISPOSICIÓN DE CILINDROS</td>
+                    <td class="val-tech"><%= gen.disposicion_cilindros || 'En V' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">CILINDRADAS (C.C.)</td>
+                    <td class="val-tech"><%= gen.cilindradas || '-' %></td>
+                    <td class="lbl-tech">POTENCIA DEL MOTOR</td>
+                    <td class="val-tech"><%= gen.potencia_motor || '-' %> HP</td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">VELOCIDAD NOMINAL</td>
+                    <td class="val-tech"><%= gen.velocidad_nominal || '-' %> RPM</td>
+                    <td class="lbl-tech">TIPO DE REGULACIÓN</td>
+                    <td class="val-tech"><%= gen.tipo_regulacion || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">SISTEMA DE ARRANQUE</td>
+                    <td class="val-tech"><%= gen.sistema_arranque || '-' %></td>
+                    <td class="lbl-tech">CIRCUITO ELÉCTRICO (V)</td>
+                    <td class="val-tech"><%= gen.circuito_electrico || '-' %> VCC</td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">REGULADOR DE VELOCIDAD</td>
+                    <td class="val-tech"><%= gen.regulador_velocidad === 1 ? 'Electrónico' : (gen.regulador_velocidad || '-') %></td>
+                    <td class="lbl-tech">COMBUSTIBLE</td>
+                    <td class="val-tech"><%= gen.combistible === 1 ? 'Diésel' : (gen.combistible || '-') %></td>
+                </tr>
+            </table>
+
+            <table class="data-table" style="margin-top: 10px;">
+                <tr>
+                    <td colspan="4" class="section-divider">DATOS SOBRE EL CONSUMO DE COMBUSTIBLE Y LUBRICANTE</td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">CONSUMO DE COMBUSTIBLE (L/H)</td>
+                    <td class="val-tech"><%= gen.consumo_combustible || '-' %></td>
+                    <td class="lbl-tech">CAPACIDAD DE ACEITE LUBRICANTE (L)</td>
+                    <td class="val-tech"><%= gen.cap_aceite_lubricante || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">CONSUMO DE LUBRICANTE (L/H)</td>
+                    <td class="val-tech"><%= gen.consumo_lubricante || '-' %></td>
+                    <td class="lbl-tech">TIPO DE LUBRICANTE</td>
+                    <td class="val-tech"><%= gen.tipo_lubricante || '-' %></td>
+                </tr>
+            </table>
+
+            <table class="data-table" style="margin-top: 10px;">
+                <tr>
+                    <td colspan="4" class="section-divider">DIMENSIÓN Y PESO</td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">LARGO (MM)</td>
+                    <td class="val-tech"><%= gen.largo ? (gen.largo * 1000) : '-' %></td>
+                    <td class="lbl-tech">ANCHO (MM)</td>
+                    <td class="val-tech"><%= gen.ancho ? (gen.ancho * 1000) : '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">ALTO (MM)</td>
+                    <td class="val-tech"><%= gen.alto ? (gen.alto * 1000) : '-' %></td>
+                    <td class="lbl-tech">PESO (EN SECO) (KG)</td>
+                    <td class="val-tech"><%= gen.peso || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="lbl-tech">CAP. DEPÓSITO COMBUSTIBLE PROPIO (LTS)</td>
+                    <td class="val-tech"><%= gen.cap_deposito_combustible_propio || '-' %></td>
+                    <td class="lbl-tech">AUTONOMÍA</td>
+                    <td class="val-tech"><%= gen.autonomia ? gen.autonomia + ' Horas' : '-' %></td>
+                </tr>
+            </table>
+
+            <% 
+                // Buscamos los tanques enlazados a este generador específico
+                let tanquesAsociados = gen.interconexiones || data.interconexiones || []; 
+            %>
+            <% if (tanquesAsociados && tanquesAsociados.length > 0) { %>
+                <% tanquesAsociados.forEach((tanque, tIndex) => { %>
+                    <table class="data-table" style="margin-top: 10px;">
+                        <tr>
+                            <td colspan="4" class="section-divider">
+                                ALMACENAMIENTO DE COMBUSTIBLE ASOCIADO (TANQUE N° <%= tIndex + 1 %>)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="lbl-tech">VOLUMEN DEL TANQUE</td>
+                            <td class="val-tech"><%= tanque.volumen || '-' %> Lts</td>
+                            <td class="lbl-tech">GEOMETRÍA DEL TANQUE</td>
+                            <td class="val-tech"><%= tanque.geometria === 1 ? 'Cilíndrico' : (tanque.geometria || '-') %></td>
+                        </tr>
+                        <tr>
+                            <td class="lbl-tech">POSICIÓN DEL TANQUE</td>
+                            <td class="val-tech"><%= tanque.posicion || '-' %></td>
+                            <td class="lbl-tech">MATERIAL DEL TANQUE</td>
+                            <td class="val-tech"><%= tanque.material_tanque || '-' %></td>
+                        </tr>
+                        <tr>
+                            <td class="lbl-tech">DIMENSIONES DEL DIQUE</td>
+                            <td class="val-tech">L: <%= tanque.largo || '-' %>m | A: <%= tanque.ancho || '-' %>m | Esp: <%= tanque.espesor || '-' %>m</td>
+                            <td class="lbl-tech">CAPACIDAD MÁXIMA / TOTAL LITROS</td>
+                            <td class="val-tech"><%= tanque.cap_max_tanque || '-' %> / <%= tanque.total_litros || '-' %> Lts</td>
+                        </tr>
+                        <tr>
+                            <td class="lbl-tech">TIENE EXTINTORES</td>
+                            <td class="val-tech text-center" style="font-weight: bold;">
+                                SI [ <%= tanque.extintor === 1 ? 'X' : ' ' %> ] &nbsp;&nbsp;&nbsp;&nbsp; NO [ <%= tanque.extintor === 0 ? 'X' : ' ' %> ]
+                            </td>
+                            <td class="lbl-tech">ÁREA CERCADA / CERRAMIENTO</td>
+                            <td class="val-tech"><%= tanque.area_cercada === 1 ? 'SI (' + tanque.tipo_cerramiento + ')' : 'NO' %></td>
+                        </tr>
+                        
+                        <tr>
+                            <td colspan="4" style="background-color: #f8f9fa; text-align: center; font-weight: bold; font-size: 10px; color: #333; letter-spacing: 0.5px; border-top: 1px dashed #ccc;">
+                                ESPECIFICACIONES DE LA LÍNEA DE ALIMENTACIÓN (INTERCONEXIÓN)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="lbl-tech">TIPO DE SUMINISTRO</td>
+                            <td class="val-tech"><%= tanque.tipo_suministro || '-' %></td>
+                            <td class="lbl-tech">DIÁMETRO DE TUBERÍA</td>
+                            <td class="val-tech"><%= tanque.diametro_tuberia ? tanque.diametro_tuberia + ' pulg' : '-' %></td>
+                        </tr>
+                        <tr>
+                            <td class="lbl-tech">LONGITUD DE LA LÍNEA</td>
+                            <td class="val-tech"><%= tanque.longitud_linea ? tanque.longitud_linea + ' metros' : '-' %></td>
+                            <td class="lbl-tech">ESTADO DE INTERCONEXIÓN</td>
+                            <td class="val-tech" style="font-weight: bold; color: green;">OPERATIVO</td>
+                        </tr>
+                    </table>
+                <% }) %>
+            <% } else { %>
+                <table class="data-table" style="margin-top: 10px;">
+                    <tr>
+                        <td colspan="4" class="section-divider">ALMACENAMIENTO DE COMBUSTIBLE</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="val-tech text-center">No se registran tanques de almacenamiento externos vinculados a este generador.</td>
+                    </tr>
+                </table>
+            <% } %>
+
+            <footer class="footer-note">
+                <div>Registro de Respaldo Energético y Sistema de Interconexión de Combustible - Control Institucional</div>
+            </footer>
+        </div>
+    <% }) %>
+    <% } %>
+
+</body>
+</html>

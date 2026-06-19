@@ -2,6 +2,7 @@ import express from "express";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import path from "path";
 
 //importamos las variables de entorno
 import { PORT } from "./config.js";
@@ -17,6 +18,8 @@ import principal from "../src/routes/principal.routes.js";
 import est_bombeoRoutes from "./routes/EstacionBombeo/est_bombeo.routes.js";
 import detalle_est_bombeoRoutes from "./routes/EstacionBombeo/detalle_est_bombeo.routes.js";
 import est_bombeo_fotosRoutes from "./routes/EstacionBombeo/est_bombeo_fotos.routes.js";
+import linea_bombeoRoutes from "./routes/lineaBombeo/linea_bombeo.routes.js";
+import linea_bombeo_fotosRoutes from "./routes/lineaBombeo/linea_bombeo_fotos.routes.js";
 import motorRoutes from "./routes/motor/motor.routes.js";
 import detalle_motorRoutes from "./routes/motor/detalle_motor.routes.js";
 import motor_fotosRoutes from "./routes/motor/motor_fotos.routes.js";
@@ -45,6 +48,11 @@ import loginRoutes from "./routes/usuario/login.routes.js";
 import est_bombeo_reporteRoutes from "./routes/pdf/est_bombeo_reporte.routes.js";
 
 const app = express();
+
+//CONFIGURACIÓN DEL MOTOR DE PLANTILLAS
+app.set("view engine", "ejs");
+app.set("views", path.join(process.cwd(), "src", "views"));
+// Nota: Si tu carpeta "views" está en la raíz y NO dentro de src, usa:
 
 //MIDDLEWARES EN ORDEN DE EJECUCIÓN
 
@@ -75,6 +83,8 @@ app.use(principal);
 app.use(est_bombeoRoutes);
 app.use(detalle_est_bombeoRoutes);
 app.use(est_bombeo_fotosRoutes);
+app.use(linea_bombeoRoutes);
+app.use(linea_bombeo_fotosRoutes);
 app.use(motorRoutes);
 app.use(detalle_motorRoutes);
 app.use(motor_fotosRoutes);

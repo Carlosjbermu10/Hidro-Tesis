@@ -1,8 +1,8 @@
 import {
-  SearchEstacionId, //Servicio que busca si ya existe una Estacion de bombeo por su id
+  SearchLinea_BombeoId, //Servicio que busca si ya existe una Linea de bombeo por su id
   getAllValvula, //Servicio que devuelve todos las Valvulas
   SearchValvulaId, //Servicio que busca si ya existe una valvula por su id
-  SearchValvulaIdEstacion, //Servicio que busca las Valvulas en una Estacion de bombeo
+  SearchValvulaIdLineaBombeo, //Servicio que busca las Valvulas en una Linea de bombeo
   getOneValvulaForId, //Servicio que devuelve una Valvula por su id
   RegisterValvula, // Servicio para registrar una Valvula
   deleteOneValvulaForId, // Servicio que Elimina la Valvula con ese id
@@ -12,7 +12,6 @@ import {
 //FUNCIÓN AUXILIAR DE VALIDACIÓN TÉCNICA
 const validarCamposValvula = (body) => {
   return (
-    body.num_valvula === undefined ||
     !body.modelo_valvula ||
     !body.marca_valvula ||
     !body.tipo_valvula ||
@@ -77,27 +76,27 @@ export const getValvulaForId = async (req, res) => {
   }
 };
 
-export const getValvulaForIdEstacion = async (req, res) => {
+export const getValvulaForIdLineaBombeo = async (req, res) => {
   try {
     // se reciben la variable que viene por parametro
-    const id_bombeo = req.params.id;
+    const id_linea_bombeo = req.params.id;
 
-    //Se comprueba si ya existe la Estaciones de bombeo
-    const search_es = await SearchEstacionId(id_bombeo);
-    if (search_es === 0) {
+    //Se comprueba si ya existe la Linea de bombeo
+    const search_li = await SearchLinea_BombeoId(id_linea_bombeo);
+    if (search_li === 0) {
       return res.status(404).send({
         status: "mal",
-        description: "Estación de bombeo no registrada",
+        description: "Linea de bombeo no registrada",
       });
     }
 
-    //se invoca el servicio que devuelve las valvulas de esa Estacion de Bombeo
-    const est_valvu = await SearchValvulaIdEstacion(id_bombeo);
+    //se invoca el servicio que devuelve las valvulas de esa Linea de Bombeo
+    const linea_valvu = await SearchValvulaIdLineaBombeo(id_linea_bombeo);
 
     res.send({
       status: "ok",
-      description: "Las Valvulas que pertencen a esta Estacion de Bombeo",
-      data: est_valvu,
+      description: "Las Valvulas que pertencen a esta Linea de Bombeo",
+      data: linea_valvu,
     });
   } catch (error) {
     console.log(error);
@@ -111,7 +110,7 @@ export const getValvulaForIdEstacion = async (req, res) => {
 export const postValvula = async (req, res) => {
   try {
     // se reciben la variable que viene por parametro
-    const id_bombeo = req.params.id;
+    const id_linea_bombeo = req.params.id;
 
     //se reciben las variables en el req.body
     const { body } = req;
@@ -123,18 +122,17 @@ export const postValvula = async (req, res) => {
       });
     }
 
-    //Se comprueba si ya existe la Estacion de bombeo
-    const search_es = await SearchEstacionId(id_bombeo);
-    if (search_es === 0) {
+    //Se comprueba si ya existe la Linea de bombeo
+    const search_li = await SearchLinea_BombeoId(id_linea_bombeo);
+    if (search_li === 0) {
       return res.status(404).send({
         status: "mal",
-        description: "Estación de bombeo no registrada",
+        description: "Linea de bombeo no registrada",
       });
     }
 
     //Se crea un objeto para pasarlo mas adelante
     const nuevaValvula = {
-      num_valvula: body.num_valvula,
       modelo_valvula: body.modelo_valvula,
       marca_valvula: body.marca_valvula,
       tipo_valvula: body.tipo_valvula,
@@ -147,7 +145,7 @@ export const postValvula = async (req, res) => {
       tipo_asiento: body.tipo_asiento,
       tipo_compuerta: body.tipo_compuerta,
       forma_operacion: body.forma_operacion,
-      est_bombeo_id_est: id_bombeo,
+      linea_bombeo_id_linea_bombeo: id_linea_bombeo,
     };
 
     //se invoca el servicio para registrar una Valvula
@@ -226,7 +224,6 @@ export const updateValvula = async (req, res) => {
     //Se crea un objeto para pasarlo mas adelante
     const valvula = {
       id_valvula: id_valvula, // Obligatorio para identificar la fila a actualizar
-      num_valvula: body.num_valvula,
       modelo_valvula: body.modelo_valvula,
       marca_valvula: body.marca_valvula,
       tipo_valvula: body.tipo_valvula,
@@ -239,10 +236,10 @@ export const updateValvula = async (req, res) => {
       tipo_asiento: body.tipo_asiento,
       tipo_compuerta: body.tipo_compuerta,
       forma_operacion: body.forma_operacion,
-      est_bombeo_id_est: oneValvula[0].est_bombeo_id_est,
+      linea_bombeo_id_linea_bombeo: oneValvula[0].linea_bombeo_id_linea_bombeo,
     };
 
-    //se invoca el servicio para Modificar una Estacion de Bombeo
+    //se invoca el servicio para Modificar una Linea de bombeo
     const valvu = await modificarValvula(valvula);
 
     res.send({

@@ -1,8 +1,8 @@
 import {
-  SearchEstacionId, //Servicio que busca si ya existe una Estacion de bombeo por su id
+  SearchBombaId, //Servicio que busca si ya existe una Bomba por su id
   getAllMotor, //Servicio que devuelve todos los motores
   SearchMotorId, //Servicio que busca si ya existe un motor por su id
-  SearchMotorIdEstacion, //Servicio que busca los motores en una Estacion de bombeo
+  SearchMotorIdBomba, //Servicio que busca los motores en una Bomba
   getOneMotorForId, //Servicio que devuelve un motor por su id
   SearchMotorCodigo, //Servicio que busca si ya existe un motor por su codigo
   RegisterMotor, // Servicio para registrar un Motor
@@ -14,8 +14,6 @@ import {
 //FUNCIÓN AUXILIAR DE VALIDACIÓN TÉCNICA
 const validarCamposMotor = (body) => {
   return (
-    body.num_motor === undefined ||
-    body.posicion_motor === undefined ||
     !body.codigo_motor ||
     !body.marca_motor ||
     !body.tipo_motor ||
@@ -76,33 +74,32 @@ export const getMotorForId = async (req, res) => {
   }
 };
 
-export const getMotorForIdEstacion = async (req, res) => {
+export const getMotorForIdBomba = async (req, res) => {
   try {
     // se reciben la variable que viene por parametro
-    const id_bombeo = req.params.id;
+    const id_bomba = req.params.id;
 
-    //Se comprueba si ya existe la Estaciones de bombeo
-    const search_es = await SearchEstacionId(id_bombeo);
-    if (search_es === 0) {
+    //Se comprueba si ya existe la Bomba
+    const search_bom = await SearchBombaId(id_bomba);
+    if (search_bom === 0) {
       return res.status(404).send({
         status: "mal",
-        description: "Estación de bombeo no registrada",
+        description: "Bomba no registrada",
       });
     }
-
-    //se invoca el servicio que devuelve los motores de esa Estacion de Bombeo
-    const est_motor = await SearchMotorIdEstacion(id_bombeo);
+    //se invoca el servicio que devuelve los motores de esa Bomba
+    const bom_motor = await SearchMotorIdBomba(id_bomba);
 
     res.send({
       status: "ok",
-      description: "Los motores que pertencen a esta Estacion de Bombeo",
-      data: est_motor,
+      description: "Los motores que pertencen a esta Bomba",
+      data: bom_motor,
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
       status: "error",
-      description: "Error interno del servidor al buscar motores por estación",
+      description: "Error interno del servidor al buscar motores por su Bomba",
     });
   }
 };
@@ -110,7 +107,7 @@ export const getMotorForIdEstacion = async (req, res) => {
 export const postMotor = async (req, res) => {
   try {
     // se reciben la variable que viene por parametro
-    const id_bombeo = req.params.id;
+    const id_bomba = req.params.id;
     //se reciben las variables en el req.body
     const { body } = req;
     if (validarCamposMotor(body)) {
@@ -121,12 +118,12 @@ export const postMotor = async (req, res) => {
       });
     }
 
-    //Se comprueba si ya existe la Estaciones de bombeo
-    const search_Es = await SearchEstacionId(id_bombeo);
-    if (search_Es === 0) {
+    //Se comprueba si ya existe la Bomba
+    const search_bom = await SearchBombaId(id_bomba);
+    if (search_bom === 0) {
       return res.status(404).send({
         status: "mal",
-        description: "Estación de bombeo no registrada",
+        description: "Bomba no registrada",
       });
     }
 
@@ -139,19 +136,29 @@ export const postMotor = async (req, res) => {
       });
     }
 
+    //se invoca el servicio que devuelve el Motor de esa Bomba
+    const bom_motor = await SearchMotorIdBomba(id_bomba);
+
+    //Se comprueba si la bomba ya tiene registrado un Motor
+    if (bom_motor.length !== 0) {
+      return res.status(409).send({
+        status: "mal",
+        description: "La Bomba ya posee Motor registrado",
+      });
+    }
+
     //Se crea un objeto para pasarlo mas adelante
     const motor = {
       num_motor: body.num_motor,
-      posicion_motor: body.posicion_motor,
-      codigo_motor: body.codigo_motor,
       marca_motor: body.marca_motor,
       tipo_motor: body.tipo_motor,
       tipo_corriente: body.tipo_corriente,
+      mono_tri: body.mono_tri,
       asin_sin: body.asin_sin,
       universal: body.universal,
       soporte_tec: body.soporte_tec,
       num_fases: body.num_fases,
-      est_bombeo_id_est: id_bombeo,
+      bomba_id_bomba: id_bomba,
     };
 
     //se invoca el servicio para registrar un Motor
@@ -244,20 +251,19 @@ export const updateMotor = async (req, res) => {
     //Se crea un objeto para pasarlo mas adelante
     const motorDat = {
       id_motor: id_motor, // ID necesario para el WHERE en el UPDATE
-      num_motor: body.num_motor,
-      posicion_motor: body.posicion_motor,
       codigo_motor: body.codigo_motor,
       marca_motor: body.marca_motor,
       tipo_motor: body.tipo_motor,
       tipo_corriente: body.tipo_corriente,
+      mono_tri: body.mono_tri,
       asin_sin: body.asin_sin,
       universal: body.universal,
       soporte_tec: body.soporte_tec,
       num_fases: body.num_fases,
-      est_bombeo_id_est: oneMotor[0].est_bombeo_id_est,
+      bomba_id_bomba: oneMotor[0].bomba_id_bomba,
     };
 
-    //se invoca el servicio para Modificar una Estacion de Bombeo
+    //se invoca el servicio para Modificar una Bomba
     const mo = await modificarMotor(motorDat);
 
     res.send({

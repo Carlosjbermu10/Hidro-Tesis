@@ -1,9 +1,9 @@
 import { pool } from "../../database/db.js";
 
-//Servicio que busca si ya existe una Estación de bombeo por su id
-export const SearchEstacionId = async (id_bombeo) => {
-  const [rows] = await pool.query("SELECT * FROM est_bombeo WHERE id_est = ?", [
-    id_bombeo,
+//Servicio que busca si ya existe una Bomba por su id
+export const SearchBombaId = async (id_bomba) => {
+  const [rows] = await pool.query("SELECT * FROM bomba WHERE id_bomba = ?", [
+    id_bomba,
   ]);
   return rows.length;
 };
@@ -30,16 +30,16 @@ export const getOneMotorForId = async (id_motor) => {
   return rows;
 };
 
-//Servicio que devuelve los datos de los motores que pertenecen a Estacion de Bombeo por su id
-export const SearchMotorIdEstacion = async (id_bombeo) => {
+//Servicio que devuelve los datos de los motores que pertenecen a una Bomba por su id
+export const SearchMotorIdBomba = async (bomba_id_bomba) => {
   const [rows] = await pool.query(
-    "SELECT * FROM motor WHERE est_bombeo_id_est = ?",
-    [id_bombeo],
+    "SELECT * FROM motor WHERE bomba_id_bomba = ?",
+    [bomba_id_bomba],
   );
   return rows;
 };
 
-//Servicio que busca si ya existe una Estación de bombeo por su codigo
+//Servicio que busca si ya existe un Motor por su codigo
 export const SearchMotorCodigo = async (codigo) => {
   const [rows] = await pool.query(
     "SELECT * FROM motor WHERE codigo_motor = ?",
@@ -50,50 +50,47 @@ export const SearchMotorCodigo = async (codigo) => {
 
 //Servicio para registrar un Motor
 export const RegisterMotor = async (motor) => {
-  const num_motor = motor.num_motor;
-  const posicion_motor = motor.posicion_motor;
   const codigo_motor = motor.codigo_motor;
   const marca_motor = motor.marca_motor;
   const tipo_motor = motor.tipo_motor;
   const tipo_corriente = motor.tipo_corriente;
+  const mono_tri = motor.mono_tri;
   const asin_sin = motor.asin_sin;
   const universal = motor.universal;
   const soporte_tec = motor.soporte_tec;
   const num_fases = motor.num_fases;
-  const est_bombeo_id_est = motor.est_bombeo_id_est;
+  const bomba_id_bomba = motor.bomba_id_bomba;
 
   const [rows] = await pool.query(
-    `INSERT INTO motor (num_motor, posicion_motor, codigo_motor, 
-    marca_motor, tipo_motor, tipo_corriente, asin_sin, universal, 
-    soporte_tec, num_fases, est_bombeo_id_est) 
-    VALUES(?,?,?,?,?,?,?,?,?,?,?)`,
+    `INSERT INTO motor (codigo_motor, 
+    marca_motor, tipo_motor, tipo_corriente, mono_tri, asin_sin, universal, 
+    soporte_tec, num_fases, bomba_id_bomba) 
+    VALUES(?,?,?,?,?,?,?,?,?,?)`,
     [
-      num_motor,
-      posicion_motor,
       codigo_motor,
       marca_motor,
       tipo_motor,
       tipo_corriente,
+      mono_tri,
       asin_sin,
       universal,
       soporte_tec,
       num_fases,
-      est_bombeo_id_est,
+      bomba_id_bomba,
     ],
   );
   const result = {
     id: rows.insertId,
-    num_motor,
-    posicion_motor,
     codigo_motor,
     marca_motor,
     tipo_motor,
     tipo_corriente,
+    mono_tri,
     asin_sin,
     universal,
     soporte_tec,
     num_fases,
-    est_bombeo_id_est,
+    bomba_id_bomba,
   };
   return result;
 };
@@ -110,45 +107,42 @@ export const deleteOneMotorForId = async (id_motor) => {
 export const modificarMotor = async (motorData) => {
   const id_motor = motorData.id_motor; // El ID que viene del JSON para el WHERE
   const {
-    num_motor,
-    posicion_motor,
     codigo_motor,
     marca_motor,
     tipo_motor,
     tipo_corriente,
+    mono_tri,
     asin_sin,
     universal,
     soporte_tec,
     num_fases,
-    est_bombeo_id_est,
+    bomba_id_bomba,
   } = motorData;
 
   const [rows] = await pool.query(
     `UPDATE motor SET 
-      num_motor = ?, 
-      posicion_motor = ?, 
       codigo_motor = ?, 
       marca_motor = ?, 
       tipo_motor = ?, 
       tipo_corriente = ?, 
+      mono_tri = ?,
       asin_sin = ?, 
       universal = ?, 
       soporte_tec = ?, 
       num_fases = ?, 
-      est_bombeo_id_est = ? 
+      bomba_id_bomba = ? 
     WHERE id_motor = ?`,
     [
-      num_motor,
-      posicion_motor,
       codigo_motor,
       marca_motor,
       tipo_motor,
       tipo_corriente,
+      mono_tri,
       asin_sin,
       universal,
       soporte_tec,
       num_fases,
-      est_bombeo_id_est,
+      bomba_id_bomba,
       id_motor,
     ],
   );

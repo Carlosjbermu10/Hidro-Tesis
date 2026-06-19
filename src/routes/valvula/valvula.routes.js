@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   getValvula,
   getValvulaForId,
-  getValvulaForIdEstacion,
+  getValvulaForIdLineaBombeo,
   postValvula,
   deleteValvula,
   updateValvula,
@@ -18,7 +18,7 @@ router.get("/valvula", checkAuth, getValvula);
 
 router.get("/valvula/:id", checkAuth, getValvulaForId);
 
-router.get("/valvula/estacion/:id", checkAuth, getValvulaForIdEstacion);
+router.get("/valvula/linea_bombeo/:id", checkAuth, getValvulaForIdLineaBombeo);
 
 //RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
 router.post(

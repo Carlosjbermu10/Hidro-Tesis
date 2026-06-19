@@ -1,16 +1,17 @@
 import { pool } from "../../database/db.js";
 
-//Servicio que busca si ya existe una Estación de bombeo por su id
-export const SearchEstacionId = async (id_bombeo) => {
-  const [rows] = await pool.query("SELECT * FROM est_bombeo WHERE id_est = ?", [
-    id_bombeo,
-  ]);
+//Servicio que busca si ya existe una Linea de bombeo por su id
+export const SearchLinea_BombeoId = async (id_linea_bombeo) => {
+  const [rows] = await pool.query(
+    "SELECT * FROM linea_bombeo WHERE id_linea_bombeo = ?",
+    [id_linea_bombeo],
+  );
   return rows.length;
 };
 
 //Servicio que devuelve todas las valvulas
 export const getAllValvula = async () => {
-  const [rows] = await pool.query(`SELECT * FROM bd_beta.valvula;`);
+  const [rows] = await pool.query(`SELECT * FROM valvula;`);
   return rows;
 };
 
@@ -32,11 +33,11 @@ export const getOneValvulaForId = async (id_valvula) => {
   return rows;
 };
 
-//Servicio que devuelve los datos de las Valvulas que pertenecen a Estacion de Bombeo por su id
-export const SearchValvulaIdEstacion = async (id_bombeo) => {
+//Servicio que devuelve los datos de las Valvulas que pertenecen a Linea de Bombeo por su id
+export const SearchValvulaIdLineaBombeo = async (id_linea_bombeo) => {
   const [rows] = await pool.query(
-    "SELECT * FROM valvula WHERE est_bombeo_id_est = ?",
-    [id_bombeo],
+    "SELECT * FROM valvula WHERE linea_bombeo_id_linea_bombeo = ?",
+    [id_linea_bombeo],
   );
   return rows;
 };
@@ -44,7 +45,6 @@ export const SearchValvulaIdEstacion = async (id_bombeo) => {
 //Servicio para registrar una Valvula
 export const RegisterValvula = async (nuevaValvula) => {
   const {
-    num_valvula,
     modelo_valvula,
     marca_valvula,
     tipo_valvula,
@@ -57,12 +57,11 @@ export const RegisterValvula = async (nuevaValvula) => {
     tipo_asiento,
     tipo_compuerta,
     forma_operacion,
-    est_bombeo_id_est,
+    linea_bombeo_id_linea_bombeo,
   } = nuevaValvula;
 
   const [rows] = await pool.query(
     `INSERT INTO valvula (
-      num_valvula, 
       modelo_valvula, 
       marca_valvula, 
       tipo_valvula, 
@@ -75,10 +74,9 @@ export const RegisterValvula = async (nuevaValvula) => {
       tipo_asiento, 
       tipo_compuerta, 
       forma_operacion, 
-      est_bombeo_id_est
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      linea_bombeo_id_linea_bombeo
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      num_valvula,
       modelo_valvula,
       marca_valvula,
       tipo_valvula,
@@ -91,7 +89,7 @@ export const RegisterValvula = async (nuevaValvula) => {
       tipo_asiento,
       tipo_compuerta,
       forma_operacion,
-      est_bombeo_id_est,
+      linea_bombeo_id_linea_bombeo,
     ],
   );
 
@@ -113,7 +111,6 @@ export const deleteOneValvulaForId = async (id_valvula) => {
 export const modificarValvula = async (valvula) => {
   const id_valvula = valvula.id_valvula;
   const {
-    num_valvula,
     modelo_valvula,
     marca_valvula,
     tipo_valvula,
@@ -126,12 +123,11 @@ export const modificarValvula = async (valvula) => {
     tipo_asiento,
     tipo_compuerta,
     forma_operacion,
-    est_bombeo_id_est,
+    linea_bombeo_id_linea_bombeo,
   } = valvula;
 
   const [rows] = await pool.query(
     `UPDATE valvula SET 
-      num_valvula = ?, 
       modelo_valvula = ?, 
       marca_valvula = ?, 
       tipo_valvula = ?, 
@@ -144,10 +140,9 @@ export const modificarValvula = async (valvula) => {
       tipo_asiento = ?, 
       tipo_compuerta = ?, 
       forma_operacion = ?, 
-      est_bombeo_id_est = ? 
+      linea_bombeo_id_linea_bombeo = ? 
     WHERE id_valvula = ?`,
     [
-      num_valvula,
       modelo_valvula,
       marca_valvula,
       tipo_valvula,
@@ -160,7 +155,7 @@ export const modificarValvula = async (valvula) => {
       tipo_asiento,
       tipo_compuerta,
       forma_operacion,
-      est_bombeo_id_est,
+      linea_bombeo_id_linea_bombeo,
       id_valvula,
     ],
   );

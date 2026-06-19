@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   getMotor,
   getMotorForId,
-  getMotorForIdEstacion,
+  getMotorForIdBomba,
   postMotor,
   deleteMotor,
   updateMotor,
@@ -20,7 +20,7 @@ router.get("/motor", checkAuth, getMotor);
 
 router.get("/motor/:id", checkAuth, getMotorForId);
 
-router.get("/motor/estacion/:id", checkAuth, getMotorForIdEstacion);
+router.get("/motor/bomba/:id", checkAuth, getMotorForIdBomba);
 
 //RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
 router.post(

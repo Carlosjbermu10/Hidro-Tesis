@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { exportEstacionesPDF } from "../../controllers/pdf/est_bombeo_reporte.controller.js";
+import {
+  exportEstacionesPDF,
+  generarPdfEstacion,
+} from "../../controllers/pdf/est_bombeo_reporte.controller.js";
 import { checkAuth, checkRole } from "../../middleware/auth.middleware.js";
 
 const router = Router();
@@ -10,6 +13,14 @@ router.get(
   checkAuth,
   checkRole(["admin", "supervisor"]),
   exportEstacionesPDF,
+);
+
+// Endpoint restringido a Admin y Supervisor para exportar la data
+router.get(
+  "/estacion/exportar/pdf/:id",
+  checkAuth,
+  checkRole(["admin", "supervisor"]),
+  generarPdfEstacion,
 );
 
 export default router;
