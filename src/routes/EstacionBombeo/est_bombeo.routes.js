@@ -15,9 +15,9 @@ const router = Router();
 //RUTAS
 
 //RUTAS DE LECTURA (Acceso para todo el personal logueado)
-router.get("/estacion", checkAuth, getEstacion);
+router.get("/estaciones", checkAuth, getEstacion);
 
-router.get("/estacion/:id", checkAuth, getEstacionForId);
+router.get("/estacion/gestion/:id", checkAuth, getEstacionForId);
 
 //RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
 router.post(

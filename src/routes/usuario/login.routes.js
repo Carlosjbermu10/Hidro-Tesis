@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   getLogin,
   postLogin,
-  getLogout,
+  postLogout,
 } from "../../controllers/usuario/login.controller.js";
 
 //IMPORTAMOS LOS MIDDLWARE
@@ -21,9 +21,9 @@ import cloudinary from "cloudinary";
 
 const router = Router();
 
-router.get("/login", getLogin);
-router.post("/login", postLogin);
-router.get("/logout", getLogout);
+router.get("/auth/login", getLogin);
+router.post("/auth/login", postLogin);
+router.post("/auth/logout", postLogout);
 
 /*
 router.get("/a", checkAuth, (req, res) => {

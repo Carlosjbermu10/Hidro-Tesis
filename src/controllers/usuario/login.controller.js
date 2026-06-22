@@ -72,7 +72,7 @@ export const postLogin = async (req, res) => {
   }
 };
 
-export const getLogout = async (req, res, next) => {
+export const postLogout = async (req, res, next) => {
   // 1. Borra la cookie 'jwt' del navegador o cliente
   res.clearCookie("jwt");
 

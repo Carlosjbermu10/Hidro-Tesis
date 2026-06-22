@@ -20,6 +20,7 @@ import detalle_est_bombeoRoutes from "./routes/EstacionBombeo/detalle_est_bombeo
 import est_bombeo_fotosRoutes from "./routes/EstacionBombeo/est_bombeo_fotos.routes.js";
 import linea_bombeoRoutes from "./routes/lineaBombeo/linea_bombeo.routes.js";
 import linea_bombeo_fotosRoutes from "./routes/lineaBombeo/linea_bombeo_fotos.routes.js";
+import linea_bombeo_superRoutes from "./routes/lineaBombeo/linea_completa.routes.js";
 import motorRoutes from "./routes/motor/motor.routes.js";
 import detalle_motorRoutes from "./routes/motor/detalle_motor.routes.js";
 import motor_fotosRoutes from "./routes/motor/motor_fotos.routes.js";
@@ -84,7 +85,9 @@ app.use(est_bombeoRoutes);
 app.use(detalle_est_bombeoRoutes);
 app.use(est_bombeo_fotosRoutes);
 app.use(linea_bombeoRoutes);
+app.use(est_bombeo_reporteRoutes);
 app.use(linea_bombeo_fotosRoutes);
+app.use(linea_bombeo_superRoutes);
 app.use(motorRoutes);
 app.use(detalle_motorRoutes);
 app.use(motor_fotosRoutes);
@@ -110,7 +113,6 @@ app.use(tanque_has_generadorRoutes);
 app.use(tanque_fotosRoutes);
 app.use(registerRoutes);
 app.use(loginRoutes);
-app.use(est_bombeo_reporteRoutes);
 
 //ARRANQUE DEL SERVIDOR
 app.listen(PORT, () => {
