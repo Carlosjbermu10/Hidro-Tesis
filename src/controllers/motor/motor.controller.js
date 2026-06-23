@@ -149,7 +149,7 @@ export const postMotor = async (req, res) => {
 
     //Se crea un objeto para pasarlo mas adelante
     const motor = {
-      num_motor: body.num_motor,
+      codigo_motor: body.codigo_motor,
       marca_motor: body.marca_motor,
       tipo_motor: body.tipo_motor,
       tipo_corriente: body.tipo_corriente,

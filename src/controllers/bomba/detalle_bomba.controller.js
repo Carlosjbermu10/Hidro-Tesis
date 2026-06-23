@@ -146,32 +146,20 @@ export const postDetalle_Bomba = async (req, res) => {
 
 export const deleteDetalle_Bomba = async (req, res) => {
   try {
-    // se reciben la variable que viene por parametro
-    const id_bomba = req.params.id;
+    // 🌟 Recibimos el ID del DETALLE (Ficha) desde el frontend
+    const id_detalle = req.params.id;
 
-    //Se comprueba si ya existe la Bomba
-    const search_bo = await SearchBombaId(id_bomba);
-    if (search_bo === 0) {
+    // 🌟 Usamos tu servicio que busca por ID de DETALLE directo en la base de datos
+    const searchDetalle = await getOneDetalle_BombaForId_Detalle(id_detalle);
+
+    if (!searchDetalle || searchDetalle.length === 0) {
       return res.status(404).send({
         status: "mal",
-        description: "Bomba no registrada",
+        description: "La ficha técnica no existe o ya fue eliminada",
       });
     }
 
-    //Se comprueba si la Bomba cuenta con detalles
-    const searchDetalle = await SearchDetalle_BombaId(id_bomba);
-    if (searchDetalle === 0) {
-      return res.status(409).send({
-        status: "mal",
-        description: "Bomba no cuenta con detalles",
-      });
-    }
-
-    //Se invoca el servicio que devuelve los detalles de la Bomba con ese id
-    const bom = await getOneDetalle_BombaForId(id_bomba);
-    const id_detalle = bom[0].id_detalle_bomba;
-
-    //se invoca el servicio que Elimina la Bomba con ese id
+    // 🌟 Invocamos tu servicio de eliminación pasándole el id_detalle limpio
     await deleteOneDetalleBombaForId_Detalle(id_detalle);
 
     res.send({
@@ -179,7 +167,7 @@ export const deleteDetalle_Bomba = async (req, res) => {
       description: "Detalles de la Bomba eliminados correctamente",
     });
   } catch (error) {
-    console.log(error);
+    console.error("🚨 Error interno en deleteDetalle_Bomba:", error);
     res.status(500).send({
       status: "error",
       description:
@@ -256,12 +244,10 @@ export const updateDetalle_Bomba = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .send({
-        status: "error",
-        description:
-          "Error interno del servidor al actualizar detalles de la bomba",
-      });
+    res.status(500).send({
+      status: "error",
+      description:
+        "Error interno del servidor al actualizar detalles de la bomba",
+    });
   }
 };
