@@ -4,6 +4,7 @@ import {
   SearchCCMId, //Servicio que busca si ya existe un CCM por su id
   SearchCCMIdEstacion, //Servicio que busca los CCM en una Estacion de bombeo
   getOneCCMForId, //Servicio que devuelve un CCM por su id
+  SearchCCMTotalIdEstacion, //Servicio de extraccion total de CCM
   RegisterCCM, // Servicio para registrar un CCM
   deleteOneCCMForId, // Servicio que Elimina el CCM con ese id
   modificarCCM, // Servicio para modiciar un CCM
@@ -95,6 +96,38 @@ export const getCCMForIdEstacion = async (req, res) => {
       description:
         "Los Centro de Control de Máquinas que pertencen a esta Estacion de Bombeo",
       data: est_centro,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      description: "Error interno del servidor al buscar CCM por estación",
+    });
+  }
+};
+
+export const getCCMTotalForIdEstacion = async (req, res) => {
+  try {
+    // se reciben la variable que viene por parametro
+    const id_bombeo = req.params.id;
+
+    //Se comprueba si ya existe la Estacion de bombeo
+    const search_es = await SearchEstacionId(id_bombeo);
+    if (search_es === 0) {
+      return res.status(404).send({
+        status: "mal",
+        description: "Estación de bombeo no registrada",
+      });
+    }
+
+    //se invoca el servicio que devuelve los CCM Completoss de esa Estacion de Bombeo
+    const est_centro_total = await SearchCCMTotalIdEstacion(id_bombeo);
+
+    res.send({
+      status: "ok",
+      description:
+        "Los Datos completos del Centro de Control de Máquinas que pertencen a esta Estacion de Bombeo",
+      data: est_centro_total,
     });
   } catch (error) {
     console.log(error);
@@ -241,11 +274,9 @@ export const updateCCM = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .send({
-        status: "error",
-        description: "Error interno del servidor al actualizar el CCM",
-      });
+    res.status(500).send({
+      status: "error",
+      description: "Error interno del servidor al actualizar el CCM",
+    });
   }
 };

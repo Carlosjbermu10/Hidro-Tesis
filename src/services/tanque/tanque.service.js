@@ -138,3 +138,44 @@ export const modificarTanque = async (tanqueAEditar) => {
 
   return { id, ...tanqueAEditar };
 };
+
+//Servicio que extrae el tanque con sus fotos de una estacion de bombeo
+export const getTanquesTotalForIdEstacion = async (idEstacion) => {
+  // 1. Obtener todos los tanques base que pertenecen a esta estación de bombeo
+  const [tanques] = await pool.query(
+    "SELECT * FROM tanque WHERE est_bombeo_id_est = ?",
+    [idEstacion],
+  );
+
+  // 2. Iterar sobre cada tanque para anexar sus dependencias (Fotos y Generadores vinculados)
+  for (let tanque of tanques) {
+    const idTanque = tanque.id_tanque;
+
+    // A. Buscar la Galería de Fotos de este tanque
+    const [fotos] = await pool.query(
+      "SELECT * FROM tanque_fotos WHERE tanque_id = ?",
+      [idTanque],
+    );
+    tanque.fotos = fotos || [];
+
+    // B. Buscar qué Generadores están siendo alimentados por este tanque (Intersección)
+    const queryGeneradores = `
+      SELECT 
+        g.id_generador, 
+        g.potencia_principal,
+        thg.tipo_suministro, 
+        thg.diametro_tuberia, 
+        thg.longitud_linea
+      FROM tanque_has_generador thg
+      INNER JOIN generador g ON thg.generador_id_generador = g.id_generador
+      WHERE thg.tanque_id_tanque = ?
+    `;
+    const [generadoresVinculados] = await pool.query(queryGeneradores, [
+      idTanque,
+    ]);
+    tanque.generadores_asociados = generadoresVinculados || [];
+  }
+
+  // 3. Retornar el objeto consolidado al controlador
+  return tanques;
+};

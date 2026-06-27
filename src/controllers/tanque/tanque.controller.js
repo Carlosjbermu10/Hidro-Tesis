@@ -7,6 +7,7 @@ import {
   RegisterTanque, // Servicio para registrar un Tanque
   deleteOneTanqueForId, // Servicio que Elimina un Tanque con ese id
   modificarTanque, // Servicio para modiciar un Tanque
+  getTanquesTotalForIdEstacion, // Servicio que extrae el tanque con sus fotos de una estacion de bombeo
 } from "../../services/tanque/tanque.service.js";
 
 // --- VALIDACIÓN DRY ---
@@ -98,6 +99,37 @@ export const getTanqueForIdEstacion = async (req, res) => {
       status: "ok",
       description: "Los Tanques que pertencen a esta Estacion de Bombeo",
       data: est_tanque,
+    });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .send({ status: "error", description: "Error interno del servidor" });
+  }
+};
+
+export const getTanqueTotalForIdEstacion = async (req, res) => {
+  try {
+    // se reciben la variable que viene por parametro
+    const id_bombeo = req.params.id;
+
+    //Se comprueba si ya existe la Estacion de bombeo
+    const search_es = await SearchEstacionId(id_bombeo);
+    if (search_es === 0) {
+      return res.status(404).send({
+        status: "mal",
+        description: "Estación de bombeo no registrada",
+      });
+    }
+
+    //se invoca el servicio que devuelve los Tanques y sus fotos de esa Estacion de Bombeo
+    const est_tanque_total = await getTanquesTotalForIdEstacion(id_bombeo);
+
+    res.send({
+      status: "ok",
+      description:
+        "Los Tanques y sus fotos que pertencen a esta Estacion de Bombeo",
+      data: est_tanque_total,
     });
   } catch (error) {
     console.log(error);

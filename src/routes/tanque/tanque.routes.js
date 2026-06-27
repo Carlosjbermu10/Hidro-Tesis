@@ -3,6 +3,7 @@ import {
   getTanque,
   getTanqueForId,
   getTanqueForIdEstacion,
+  getTanqueTotalForIdEstacion,
   postTanque,
   deleteTanque,
   updateTanque,
@@ -21,6 +22,12 @@ router.get("/tanque", checkAuth, getTanque);
 router.get("/tanque/:id", checkAuth, getTanqueForId);
 
 router.get("/tanque/estacion/:id", checkAuth, getTanqueForIdEstacion);
+
+router.get(
+  "/tanque/estacion/total/:id",
+  checkAuth,
+  getTanqueTotalForIdEstacion,
+);
 
 //RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
 router.post(

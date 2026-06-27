@@ -3,6 +3,7 @@ import {
   getGenerador,
   getGeneradorForId,
   getGeneradorForIdEstacion,
+  getGeneradorTotalForIdEstacion,
   postGenerador,
   deleteGenerador,
   updateGenerador,
@@ -21,6 +22,12 @@ router.get("/generador", checkAuth, getGenerador);
 router.get("/generador/:id", checkAuth, getGeneradorForId);
 
 router.get("/generador/estacion/:id", checkAuth, getGeneradorForIdEstacion);
+
+router.get(
+  "/generador/estacion/total/:id",
+  checkAuth,
+  getGeneradorTotalForIdEstacion,
+);
 
 //RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
 router.post(

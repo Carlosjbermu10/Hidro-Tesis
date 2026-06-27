@@ -201,6 +201,7 @@ export const updateJuegos_Contactos_CCM = async (req, res) => {
     //Se comprueba si el CCM posee Juegos de Contactos
     const search_jue = await SearchJuegos_Contactos_CCMId(id_ccm);
     if (search_jue === 0) {
+      console.log(search_jue);
       return res.status(409).send({
         status: "mal",
         description:
@@ -232,12 +233,10 @@ export const updateJuegos_Contactos_CCM = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .send({
-        status: "error",
-        description:
-          "Error interno del servidor al actualizar los juegos de contactos",
-      });
+    res.status(500).send({
+      status: "error",
+      description:
+        "Error interno del servidor al actualizar los juegos de contactos",
+    });
   }
 };

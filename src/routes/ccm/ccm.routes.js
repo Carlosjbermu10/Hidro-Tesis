@@ -3,6 +3,7 @@ import {
   getCCM,
   getCCMForId,
   getCCMForIdEstacion,
+  getCCMTotalForIdEstacion,
   postCCM,
   deleteCCM,
   updateCCM,
@@ -21,6 +22,8 @@ router.get("/ccm", checkAuth, getCCM);
 router.get("/ccm/:id", checkAuth, getCCMForId);
 
 router.get("/ccm/estacion/:id", checkAuth, getCCMForIdEstacion);
+
+router.get("/ccm/estacion/total/:id", checkAuth, getCCMTotalForIdEstacion);
 
 //RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
 router.post(

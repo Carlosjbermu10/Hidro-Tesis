@@ -39,6 +39,55 @@ export const SearchCCMIdEstacion = async (id_bombeo) => {
   return rows;
 };
 
+//Servicio de extraccion total de CCM que pertenecen a Estacion de Bombeo por su id
+export const SearchCCMTotalIdEstacion = async (id_bombeo) => {
+  // 1. Obtener los CCM maestros de la estación
+  const [ccms] = await pool.query(
+    "SELECT * FROM ccm WHERE est_bombeo_id_est = ?",
+    [id_bombeo],
+  );
+
+  if (ccms.length === 0) return [];
+
+  // 2. Mapear y adjuntar los hijos de cada CCM de forma paralela y eficiente
+  const ccmCompletos = await Promise.all(
+    ccms.map(async (ccm) => {
+      const idCCM = ccm.id_ccm;
+
+      // Consultas simultáneas para cada tabla hija del CCM actual
+      const [[fotos], [contactos], [arrancadores], [circuitos]] =
+        await Promise.all([
+          pool.query(
+            "SELECT id_ccm_foto, foto_url, foto_public_id FROM ccm_fotos WHERE ccm_id = ?",
+            [idCCM],
+          ),
+          pool.query(
+            "SELECT * FROM juegos_contactos_ccm WHERE ccm_id_ccm = ?",
+            [idCCM],
+          ),
+          pool.query(
+            "SELECT * FROM tipo_arrancadores_ccm WHERE ccm_id_ccm = ?",
+            [idCCM],
+          ),
+          pool.query("SELECT * FROM tipo_circuito_ccm WHERE ccm_id_ccm = ?", [
+            idCCM,
+          ]),
+        ]);
+
+      // Retornamos el CCM maestro con sus sub-objetos y arreglos perfectamente anidados
+      return {
+        ...ccm,
+        fotos: fotos || [],
+        juegos_contactos: contactos[0] || null, // Tomamos el primero ya que suele ser configuración única
+        tipo_arrancadores: arrancadores[0] || null,
+        tipo_circuito: circuitos[0] || null,
+      };
+    }),
+  );
+
+  return ccmCompletos;
+};
+
 //Servicio para registrar un CCM
 export const RegisterCCM = async (nuevoCCM) => {
   const {

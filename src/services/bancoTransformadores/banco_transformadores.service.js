@@ -38,15 +38,54 @@ export const getOneBancoTransformadoresForId = async (
   return rows;
 };
 
-//Servicio que devuelve los datos de los Bancos de Transformadores que pertenecen a Estacion de Bombeo por su id
+// Servicio que devuelve los datos de los Bancos de Transformadores con sus respectivas fotos agrupadas
 export const SearchBancoTransformadoresIdEstacion = async (id_bombeo) => {
   const [rows] = await pool.query(
-    "SELECT * FROM banco_transformadores WHERE est_bombeo_id_est = ?",
+    `SELECT 
+      bt.*,
+      f.id_banco_transformadores_foto,
+      f.foto_url,
+      f.foto_public_id
+     FROM banco_transformadores bt
+     LEFT JOIN banco_transformadores_fotos f 
+       ON bt.id_banco_transformadores = f.banco_transformadores_id
+     WHERE bt.est_bombeo_id_est = ?`,
     [id_bombeo],
   );
-  return rows;
+
+  // Mapeador inteligente para agrupar las imágenes en un array interno
+  const transformadoresMap = {};
+
+  rows.forEach((row) => {
+    const idTransformador = row.id_banco_transformadores;
+
+    // Si el banco de transformadores no ha sido registrado en el mapa, lo creamos
+    if (!transformadoresMap[idTransformador]) {
+      transformadoresMap[idTransformador] = {
+        ...row,
+        fotos_transformador: [], // Arreglo donde se acumularán sus fotos
+      };
+
+      // Limpiamos las propiedades planas del JOIN para que el objeto quede impecable
+      delete transformadoresMap[idTransformador].id_banco_transformadores_foto;
+      delete transformadoresMap[idTransformador].foto_url;
+      delete transformadoresMap[idTransformador].foto_public_id;
+    }
+
+    // Si la fila actual contiene una fotografía válida, la acoplamos al arreglo
+    if (row.id_banco_transformadores_foto) {
+      transformadoresMap[idTransformador].fotos_transformador.push({
+        id_banco_transformadores_foto: row.id_banco_transformadores_foto,
+        foto_url: row.foto_url,
+        foto_public_id: row.foto_public_id,
+      });
+    }
+  });
+
+  // Retornamos los transformadores como una lista limpia de objetos estructurados
+  return Object.values(transformadoresMap);
 };
-//
+
 //Servicio para registrar un Banco de Transformadores
 export const RegisterBancoTransformadores = async (nuevoTransformador) => {
   const {
