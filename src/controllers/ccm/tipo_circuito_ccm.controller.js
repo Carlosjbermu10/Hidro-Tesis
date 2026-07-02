@@ -8,6 +8,9 @@ import {
   modificarCircuito_CCM, // Servicio para modiciar Tipo de Circuito de un CCM
 } from "../../services/ccm/tipo_circuito_ccm.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 //FUNCIÓN AUXILIAR DE VALIDACIÓN TÉCNICA
 const validarCamposCircuito = (body) => {
   return (
@@ -141,6 +144,16 @@ export const postCircuito_CCM = async (req, res) => {
     //se invoca el servicio para registrar un Tipo de Circuito para un CCM
     const ci_ccm = await RegisterCircuito_CCM(nuevoCircuitoCCM);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR CIRCUITO CCM
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "circuito_ccm",
+      id_ccm,
+      `Registró los parámetros del circuito (Tensión de Red: ${body.tension_nominal_red}V, Corriente Nominal: ${body.corriente_nominal}A) para el CCM ID: ${id_ccm}`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Tipo de Circuito registrado correctamente",
@@ -178,8 +191,22 @@ export const deleteCircuito_CCM = async (req, res) => {
     const circuito = await getOneCircuito_CCMForId(id_ccm);
     const id_tipo_circuito_ccm = circuito[0].id_tipo_circuito_ccm;
 
+    // 💡 Rescatamos datos importantes del circuito antes de eliminarlo
+    const tensionEliminada = circuito[0].tension_nominal_red;
+    const corrienteEliminada = circuito[0].corriente_nominal;
+
     //se invoca el servicio que Elimina Tipo de Circuito con ese id
     await deleteOneCircuito_CCMForId_Detalle(id_tipo_circuito_ccm);
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR CIRCUITO CCM
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "circuito_ccm",
+      id_tipo_circuito_ccm,
+      `Eliminó permanentemente el Tipo de Circuito (Tensión original: ${tensionEliminada}V, Corriente: ${corrienteEliminada}A) asociado al CCM ID: ${id_ccm}`,
+    );
 
     res.send({
       status: "ok",
@@ -260,6 +287,16 @@ export const updateCircuito_CCM = async (req, res) => {
     //se invoca el servicio para Modificar Tipo de Circuito del CCM
     const de_circuito = await modificarCircuito_CCM(circuitoCCMAEditar);
 
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR CIRCUITO CCM
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "circuito_ccm",
+      id_tipo_circuito_ccm,
+      `Actualizó los parámetros eléctricos del circuito en el CCM ID: ${id_ccm} (Nueva Tensión de Red: ${body.tension_nominal_red}V, Corriente Nominal: ${body.corriente_nominal}A)`,
+    );
+
     res.send({
       status: "ok",
       description: "Detalles del Tipo de Circuito modificado correctamente",
@@ -267,11 +304,9 @@ export const updateCircuito_CCM = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .send({
-        status: "error",
-        description: "Error interno del servidor al actualizar el circuito",
-      });
+    res.status(500).send({
+      status: "error",
+      description: "Error interno del servidor al actualizar el circuito",
+    });
   }
 };

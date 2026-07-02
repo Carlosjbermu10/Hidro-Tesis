@@ -10,6 +10,9 @@ import {
   DeleteFotoCCMId,
 } from "../../services/ccm/ccm_fotos.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 import { uploadClo, deleteClo } from "../../helpers/cloudinary.js";
 
 //IMPORTAMOS E UTILIZAMOS CLOUDINARY
@@ -95,6 +98,16 @@ export const postFoto_CCM = async (req, res) => {
       await fs.unlink(file.path);
     }
 
+    // 🌟 REGISTRO EN BITÁCORA: Subida de imágenes al CCM
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "ccm_fotos", // Ajusta el nombre si tu tabla se llama distinto
+      id_ccm,
+      `Subió ${req.files.length} nueva(s) fotografía(s) al Centro de Control de Máquinas con ID: ${id_ccm}`,
+    );
+
     res.send({
       status: "ok",
       description:
@@ -134,6 +147,16 @@ export const deleteFoto_CCM = async (req, res) => {
 
     // Elimina el archivo físico de la nube
     await deleteClo(id_public);
+
+    // 🌟 REGISTRO EN BITÁCORA: Eliminación de imagen del CCM
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "ccm_fotos",
+      id,
+      `Eliminó una fotografía (ID en nube: ${id_public}) de un Centro de Control de Máquinas`,
+    );
 
     res.send({
       status: "ok",

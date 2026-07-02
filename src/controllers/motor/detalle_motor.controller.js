@@ -131,6 +131,16 @@ export const postDetalle_Motor = async (req, res) => {
     //se invoca el servicio para registrar un detalle para un Motor
     const de_mo = await RegisterDetalle_Motor(det_mot);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR DETALLES DE MOTOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "detalle_motor", // Ajusta el nombre si tu tabla se llama distinto
+      id_motor,
+      `Registró la ficha técnica del Motor ID: ${id_motor} (Potencia: ${body.pot_nom_motor_hp} HP, Velocidad: ${body.vel_nom_motor_rpm} RPM)`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Detalles del motor registrados correctamente",
@@ -138,12 +148,10 @@ export const postDetalle_Motor = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .send({
-        status: "error",
-        description: "Error interno del servidor al registrar detalles",
-      });
+    res.status(500).send({
+      status: "error",
+      description: "Error interno del servidor al registrar detalles",
+    });
   }
 };
 
@@ -174,8 +182,22 @@ export const deleteDetalle_Motor = async (req, res) => {
     const mot = await getOneDetalle_MotorForId(id_motor);
     const id_detalle = mot[0].id_detalle_motor;
 
+    // 💡 Rescatamos datos clave de la ficha técnica antes de eliminarla
+    const potenciaEliminada = mot[0].pot_nom_motor_hp;
+    const velocidadEliminada = mot[0].vel_nom_motor_rpm;
+
     //se invoca el servicio que Elimina el Motor con ese id
     await deleteOneDetalleMotorForId_Detalle(id_detalle);
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR DETALLES DE MOTOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "detalle_motor",
+      id_detalle,
+      `Eliminó la ficha técnica (Potencia original: ${potenciaEliminada} HP, Velocidad: ${velocidadEliminada} RPM) asociada al Motor ID: ${id_motor}`,
+    );
 
     res.send({
       status: "ok",
@@ -201,7 +223,7 @@ export const updateDetalle_Motor = async (req, res) => {
       return res.status(400).send({
         status: "mal",
         description:
-          "Faltó ingresar un dato técnico obligatorio para actualizar el motor",
+          "Faltó ingresar un dato técnico obligatorio para actualizar the motor",
       });
     }
 
@@ -251,6 +273,16 @@ export const updateDetalle_Motor = async (req, res) => {
 
     //se invoca el servicio para Modificar los Detalles de un Motor
     const de_motor = await modificarDetalleMotor(det_moto);
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR DETALLES DE MOTOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "detalle_motor",
+      id_detalle,
+      `Actualizó la ficha técnica del Motor ID: ${id_motor} (Nuevos valores -> Potencia: ${body.pot_nom_motor_hp} HP, Tensión: ${body.tens_nom_operacion_v}V)`,
+    );
 
     res.send({
       status: "ok",

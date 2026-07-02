@@ -9,6 +9,9 @@ import {
   modificarValvula, // Servicio para modiciar una Valvula
 } from "../../services/valvula/valvula.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 //FUNCIÓN AUXILIAR DE VALIDACIÓN TÉCNICA
 const validarCamposValvula = (body) => {
   return (
@@ -151,6 +154,16 @@ export const postValvula = async (req, res) => {
     //se invoca el servicio para registrar una Valvula
     const val = await RegisterValvula(nuevaValvula);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR VÁLVULA
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "valvulas",
+      id_linea_bombeo, // Referencia a la línea donde se instaló
+      `Registró una nueva Válvula (Tipo: ${body.tipo_valvula}, Marca: ${body.marca_valvula}, Modelo: ${body.modelo_valvula}) en la Línea de Bombeo ID: ${id_linea_bombeo}`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Valvula registrada correctamente",
@@ -170,17 +183,31 @@ export const deleteValvula = async (req, res) => {
     // se reciben la variable que viene por parametro
     const id_valvula = req.params.id;
 
-    //Se comprueba si ya existe la Valvula por su Id
-    const search_va = await SearchValvulaId(id_valvula);
-    if (search_va === 0) {
+    // 💡 CAMBIO CLAVE: Usamos getOneValvulaForId en lugar de Search para rescatar datos antes de eliminar
+    const oneValvula = await getOneValvulaForId(id_valvula);
+    if (!oneValvula || oneValvula.length === 0) {
       return res.status(404).send({
         status: "mal",
         description: "Valvula no registrada",
       });
     }
 
+    // Rescatamos los datos clave de la válvula antes de que se borre permanentemente
+    const tipoEliminado = oneValvula[0].tipo_valvula;
+    const marcaEliminada = oneValvula[0].marca_valvula;
+
     //se invoca el servicio que Elimina la Valvula con ese id
     await deleteOneValvulaForId(id_valvula);
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR VÁLVULA
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "valvulas",
+      id_valvula,
+      `Eliminó permanentemente la Válvula (Tipo original: ${tipoEliminado}, Marca: ${marcaEliminada})`,
+    );
 
     res.send({
       status: "ok",
@@ -241,6 +268,16 @@ export const updateValvula = async (req, res) => {
 
     //se invoca el servicio para Modificar una Linea de bombeo
     const valvu = await modificarValvula(valvula);
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR VÁLVULA
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "valvulas",
+      id_valvula,
+      `Actualizó los datos de la Válvula (Tipo: ${body.tipo_valvula}, Operación: ${body.forma_operacion}, PN: ${body.pn})`,
+    );
 
     res.send({
       status: "ok",

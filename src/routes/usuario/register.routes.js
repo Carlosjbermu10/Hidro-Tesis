@@ -9,12 +9,15 @@ import { checkAuth, checkRole } from "../../middleware/auth.middleware.js";
 
 const router = Router();
 
-router.get("/register", getRegister);
-router.post(
-  "/register",
+//Mostrar todos los usuarios registrados
+router.get(
+  "/auth/register",
   checkAuth,
   checkRole(["admin", "supervisor"]),
-  postRegister,
+  getRegister,
 );
+
+//Registrar usuario nuevo
+router.post("/auth/register", checkAuth, checkRole(["admin"]), postRegister);
 
 export default router;

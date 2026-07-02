@@ -9,6 +9,9 @@ import {
   modificarBomba, // Servicio para modiciar una Bomba
 } from "../../services/bomba/bomba.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 //FUNCIÓN AUXILIAR DE VALIDACIÓN TÉCNICA
 const validarCamposBomba = (body) => {
   return (
@@ -137,6 +140,16 @@ export const postBomba = async (req, res) => {
     //se invoca el servicio para registrar una Bomba
     const bo = await RegisterBomba(bomba);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR BOMBA
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "bombas",
+      id_linea_bombeo, // Referencia a la línea donde se instaló
+      `Registró una nueva Bomba (Marca: ${body.marca_bomba}, Modelo: ${body.modelo_bomba}, Tipo: ${body.tipo_bomba}) en la Línea de Bombeo ID: ${id_linea_bombeo}`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Bomba registrado correctamente",
@@ -156,17 +169,31 @@ export const deleteBomba = async (req, res) => {
     // se reciben la variable que viene por parametro
     const id_bomba = req.params.id;
 
-    //Se comprueba si ya existe una Bomba por su Id
-    const search_bo = await SearchBombaId(id_bomba);
-    if (search_bo === 0) {
+    // Usamos getOneBombaForId para rescatar la información antes de eliminarla
+    const oneBomba = await getOneBombaForId(id_bomba);
+    if (!oneBomba || oneBomba.length === 0) {
       return res.status(404).send({
         status: "mal",
         description: "Bomba no registrada",
       });
     }
 
+    // Rescatamos los datos clave de la bomba a eliminar
+    const marcaEliminada = oneBomba[0].marca_bomba;
+    const modeloEliminado = oneBomba[0].modelo_bomba;
+
     //se invoca el servicio que Elimina la Bomba con ese id
     await deleteOneBombaForId(id_bomba);
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR BOMBA
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "bombas",
+      id_bomba,
+      `Eliminó permanentemente la Bomba (Marca original: ${marcaEliminada}, Modelo: ${modeloEliminado})`,
+    );
 
     res.send({
       status: "ok",
@@ -221,6 +248,16 @@ export const updateBomba = async (req, res) => {
 
     //se invoca el servicio para Modificar una Bomba
     const bo = await modificarBomba(bomba);
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR BOMBA
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "bombas",
+      id_bomba,
+      `Actualizó las especificaciones técnicas de la Bomba (Marca: ${body.marca_bomba}, Modelo: ${body.modelo_bomba}, Caudal Q: ${body.q})`,
+    );
 
     res.send({
       status: "ok",

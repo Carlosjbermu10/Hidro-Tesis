@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import {
+  getUsuariosRegistrados,
   RegisterUser,
   SearchUser,
 } from "../../services/usuario/register.services.js";
@@ -8,10 +9,28 @@ import { TokenSign } from "../../helpers/GenerateToken.js";
 
 import { cookiesOp } from "../../helpers/GenerateCookie.js";
 
-export const getRegister = (req, res) => {
-  res.send("Registrar Usuario");
-};
+export const getRegister = async (req, res) => {
+  try {
+    // 1. Llamamos al servicio asíncrono que creamos para la base de datos
+    const usuarios = await getUsuariosRegistrados();
 
+    // 2. Respondemos con el formato estándar exitoso que ya manejas
+    return res.status(200).json({
+      status: "ok",
+      description: "Lista de usuarios registrados en el sistema",
+      data: usuarios,
+    });
+  } catch (error) {
+    // 3. Capturamos cualquier fallo de conexión o sintaxis en el SQL
+    console.error("Error en getUsuarios Controller:", error);
+
+    return res.status(500).json({
+      status: "error",
+      description: "Error interno del servidor al obtener la lista de usuarios",
+      error: error.message,
+    });
+  }
+};
 export const postRegister = async (req, res) => {
   try {
     //Se guarda en la variable "body" todos lo valores de "req"

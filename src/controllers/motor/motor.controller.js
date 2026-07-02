@@ -11,6 +11,9 @@ import {
   SearchMotorCodigoId, // Servicio que compara el id de un Motor con el codigo
 } from "../../services/motor/motor.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 //FUNCIÓN AUXILIAR DE VALIDACIÓN TÉCNICA
 const validarCamposMotor = (body) => {
   return (
@@ -164,6 +167,16 @@ export const postMotor = async (req, res) => {
     //se invoca el servicio para registrar un Motor
     const mo = await RegisterMotor(motor);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR MOTOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "motores",
+      body.codigo_motor, // Usamos el código de inventario del motor como clave visual
+      `Registró el Motor (Código: ${body.codigo_motor}, Marca: ${body.marca_motor}, Tipo: ${body.tipo_motor}) asignado a la Bomba ID: ${id_bomba}`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Motor registrado correctamente",
@@ -183,17 +196,31 @@ export const deleteMotor = async (req, res) => {
     // se reciben la variable que viene por parametro
     const id_motor = req.params.id;
 
-    //Se comprueba si ya existe el Motor por su Id
-    const search_mo = await SearchMotorId(id_motor);
-    if (search_mo === 0) {
+    // 💡 CAMBIO CLAVE: Usamos getOneMotorForId para extraer los datos técnicos antes de la eliminación física
+    const oneMotor = await getOneMotorForId(id_motor);
+    if (!oneMotor || oneMotor.length === 0) {
       return res.status(404).send({
         status: "mal",
         description: "Motor no registrado",
       });
     }
 
+    // Rescatamos los datos clave del motor antes de borrarlo
+    const codigoEliminado = oneMotor[0].codigo_motor;
+    const marcaEliminada = oneMotor[0].marca_motor;
+
     //se invoca el servicio que Elimina el Motor con ese id
     await deleteOneMotorForId(id_motor);
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR MOTOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "motores",
+      id_motor,
+      `Eliminó permanentemente el Motor (Código original: ${codigoEliminado}, Marca: ${marcaEliminada})`,
+    );
 
     res.send({
       status: "ok",
@@ -227,8 +254,7 @@ export const updateMotor = async (req, res) => {
     //Se invoca el servicio que devuelve el motor con ese id
     const oneMotor = await getOneMotorForId(id_motor);
 
-    //Se comprueba si ya existe el Motor por su Id
-    const search_mo = await SearchMotorId(id_motor);
+    //Se comprueba si ya existe el Motor por su Id (Ajustado para usar la consulta de arriba y evitar doble viaje a la BD)
     if (!oneMotor || oneMotor.length === 0) {
       return res.status(404).send({
         status: "mal",
@@ -266,9 +292,19 @@ export const updateMotor = async (req, res) => {
     //se invoca el servicio para Modificar una Bomba
     const mo = await modificarMotor(motorDat);
 
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR MOTOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "motores",
+      id_motor,
+      `Actualizó las especificaciones del Motor (Código: ${body.codigo_motor}, Marca: ${body.marca_motor}, Fases: ${body.num_fases})`,
+    );
+
     res.send({
       status: "ok",
-      description: "Motor modificado correctamente",
+      description: "Motor modified correctamente",
       data: mo,
     });
   } catch (error) {

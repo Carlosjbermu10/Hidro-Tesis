@@ -10,6 +10,9 @@ import {
   getGeneradorTotalForIdEstacionn, //Servicio para extraeer completo todo del generador
 } from "../../services/generador/generador.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 //FUNCIÓN AUXILIAR PARA VALIDACIÓN
 const validarDatosGenerador = (body) => {
   return (
@@ -183,6 +186,16 @@ export const postGenerador = async (req, res) => {
     //se invoca el servicio para registrar un Generador
     const generador = await RegisterGenerador(nuevoGenerador);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR GENERADOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "generadores",
+      id_bombeo, // Referencia a la estación
+      `Registró un nuevo Generador (Potencia: ${body.potencia_principal}, Voltaje: ${body.voltaje}V) en la Estación ID: ${id_bombeo}`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Generador registrado correctamente",
@@ -201,17 +214,32 @@ export const deleteGenerador = async (req, res) => {
     // se reciben la variable que viene por parametro
     const id_generador = req.params.id;
 
-    //Se comprueba si ya existe el Generador por su Id
-    const search_gene = await SearchGeneradorId(id_generador);
-    if (search_gene === 0) {
+    // 💡 CAMBIO CLAVE: Usamos getOneGeneradorForId en lugar de Search para rescatar datos antes de borrar
+    const oneGenerador = await getOneGeneradorForId(id_generador);
+    if (!oneGenerador || oneGenerador.length === 0) {
       return res.status(404).send({
         status: "mal",
         description: "Generador no registrado",
       });
     }
 
+    // Rescatamos los datos del generador antes de eliminarlo
+    const potenciaEliminada = oneGenerador[0].potencia_principal;
+    const voltajeEliminado = oneGenerador[0].voltaje;
+    const idEstacionAsociada = oneGenerador[0].est_bombeo_id_est;
+
     //se invoca el servicio que Elimina el Generador con ese id
     await deleteOneGeneradorForId(id_generador);
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR GENERADOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "generadores",
+      id_generador,
+      `Eliminó permanentemente un Generador (Potencia original: ${potenciaEliminada}, Voltaje: ${voltajeEliminado}V) de la Estación ID: ${idEstacionAsociada}`,
+    );
 
     res.send({
       status: "ok",
@@ -242,17 +270,16 @@ export const updateGenerador = async (req, res) => {
       });
     }
 
-    //Se comprueba si ya existe el Generador por su Id
-    const search_gene = await SearchGeneradorId(id_generador);
-    if (search_gene === 0) {
+    //Se invoca el servicio que devuelve el Generador con ese id
+    const oneGenerador = await getOneGeneradorForId(id_generador);
+
+    //Se comprueba si ya existe el Generador por su Id (validando la consulta anterior)
+    if (!oneGenerador || oneGenerador.length === 0) {
       return res.status(404).send({
         status: "mal",
         description: "Generador no registrado",
       });
     }
-
-    //Se invoca el servicio que devuelve el Generador con ese id
-    const oneGenerador = await getOneGeneradorForId(id_generador);
 
     //Se crea un objeto para pasarlo mas adelante
     const generadorAEditar = {
@@ -274,6 +301,16 @@ export const updateGenerador = async (req, res) => {
 
     //se invoca el servicio para Modificar un Generador
     const gener = await modificarGenerador(generadorAEditar);
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR GENERADOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "generadores",
+      id_generador,
+      `Actualizó las especificaciones técnicas del Generador (Nueva Potencia: ${body.potencia_principal}, Voltaje: ${body.voltaje}V)`,
+    );
 
     res.send({
       status: "ok",

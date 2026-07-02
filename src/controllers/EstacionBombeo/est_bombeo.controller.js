@@ -9,6 +9,9 @@ import {
   SearchEstacionCodigoId, // Servicio que compara el id de una Estación de bombeo con el codigo
 } from "../../services/EstacionBombeo/est_bombeo.service.js";
 
+// 🔗 Importamos el servicio de la bitácora
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 //FUNCIÓN AUXILIAR PARA VALIDAR CAMPOS REQUERIDOS---
 const validarCamposEstacion = (body) => {
   return (
@@ -104,6 +107,17 @@ export const postEstacion = async (req, res) => {
     //se invoca el servicio para registrar una Estacion de Bombeo
     const es = await RegisterEstacion(est);
 
+    //REGISTRO EN BITÁCORA: Extraemos el id de req.user (inyectado por checkAuth)
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "estaciones",
+      body.codigo,
+      `Registró una nueva estación de bombeo: ${body.nombre_est} (Sistema: ${body.nombre_sistema})`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Estación de Bombeo registrada correctamente",
@@ -123,9 +137,10 @@ export const deleteEstacion = async (req, res) => {
     // se reciben la variable que viene por parametro
     const id_bombeo = req.params.id;
 
-    //Se comprueba si ya existe la Estaciones de bombeo
-    const search = await SearchEstacionId(id_bombeo);
-    if (search === 0) {
+    //Se comprueba si ya existe la Estaciones de bombeo y traemos sus datos antes de borrarla
+    // para poder poner el nombre real en la descripción de la bitácora
+    const estacionAELiminar = await getOneEstacionForId(id_bombeo);
+    if (!estacionAELiminar || estacionAELiminar.length === 0) {
       return res.status(404).send({
         status: "mal",
         description: "Estación de bombeo no registrada",
@@ -134,6 +149,19 @@ export const deleteEstacion = async (req, res) => {
 
     //se invoca el servicio que Elimina la Estación de bombeo con ese id
     await deleteOneEstacionForId(id_bombeo);
+
+    // 🌟 REGISTRO EN BITÁCORA
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    const nombreEstacion = estacionAELiminar[0].nombre_est;
+    const codigoEstacion = estacionAELiminar[0].codigo;
+
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "estaciones",
+      codigoEstacion,
+      `Eliminó la estación de bombeo: ${nombreEstacion} (Código: ${codigoEstacion})`,
+    );
 
     res.send({
       status: "ok",
@@ -195,6 +223,17 @@ export const updateEstacion = async (req, res) => {
 
     //se invoca el servicio para Modificar una Estacion de Bombeo
     const es = await modificarEstacion(est);
+
+    // 🌟 REGISTRO EN BITÁCORA
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "estaciones",
+      body.codigo,
+      `Modificó los datos básicos de la estación: ${body.nombre_est}`,
+    );
 
     res.send({
       status: "ok",

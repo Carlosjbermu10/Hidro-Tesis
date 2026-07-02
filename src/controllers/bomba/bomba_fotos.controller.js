@@ -10,6 +10,9 @@ import {
   DeleteFotoBombaId,
 } from "../../services/bomba/bomba_fotos.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 import { uploadClo, deleteClo } from "../../helpers/cloudinary.js";
 
 //IMPORTAMOS E UTILIZAMOS CLOUDINARY
@@ -92,6 +95,16 @@ export const postFoto_Bomba = async (req, res) => {
       await fs.unlink(file.path);
     }
 
+    // 🌟 REGISTRO EN BITÁCORA: Subida de imágenes a la bomba
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "bomba_fotos",
+      id_bomba,
+      `Subió ${req.files.length} nueva(s) fotografía(s) a la Bomba con ID: ${id_bomba}`,
+    );
+
     res.send({
       status: "ok",
       description: "Material fotográfico de la Bomba registrado correctamente",
@@ -130,6 +143,16 @@ export const deleteFoto_Bomba = async (req, res) => {
 
     // Elimina el archivo físico de la nube
     await deleteClo(id_public);
+
+    // 🌟 REGISTRO EN BITÁCORA: Eliminación de imagen de la bomba
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "bomba_fotos",
+      id,
+      `Eliminó una fotografía (ID en nube: ${id_public}) de una Bomba`,
+    );
 
     res.send({
       status: "ok",

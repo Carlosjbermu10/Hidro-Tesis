@@ -10,6 +10,9 @@ import {
   DeleteFotoLinea_BombeoId,
 } from "../../services/lineaBombeo/linea_bombeo_fotos.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 import { uploadClo, deleteClo } from "../../helpers/cloudinary.js";
 
 //IMPORTAMOS E UTILIZAMOS CLOUDINARY
@@ -93,6 +96,16 @@ export const postFoto_Linea_Bombeo = async (req, res) => {
       await fs.unlink(file.path);
     }
 
+    // 🌟 REGISTRO EN BITÁCORA: Subida de imágenes a la línea de bombeo
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "linea_bombeo_fotos", // Ajusta el nombre si tu tabla en la BD se llama distinto
+      id_linea_bombeo,
+      `Subió ${req.files.length} nueva(s) fotografía(s) a la línea de bombeo con ID: ${id_linea_bombeo}`,
+    );
+
     res.send({
       status: "ok",
       description:
@@ -132,6 +145,16 @@ export const deleteFoto_Linea_Bombeo = async (req, res) => {
 
     // Elimina el archivo físico de la nube
     await deleteClo(id_public);
+
+    // 🌟 REGISTRO EN BITÁCORA: Eliminación de imagen de la línea de bombeo
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "linea_bombeo_fotos",
+      id,
+      `Eliminó una fotografía (ID en nube: ${id_public}) de una línea de bombeo`,
+    );
 
     res.send({
       status: "ok",

@@ -9,6 +9,9 @@ import {
   modificarLinea_Bombeo, // Servicio para modiciar una Linea de Bombeo
 } from "../../services/lineaBombeo/linea_bombeo.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 //FUNCIÓN AUXILIAR DE VALIDACIÓN TÉCNICA
 const validarCamposLinea_Bombeo = (body) => {
   return (
@@ -104,9 +107,8 @@ export const postLinea_Bombeo = async (req, res) => {
   try {
     // se reciben la variable que viene por parametro
     const id_bombeo = req.params.id;
-
-    //se reciben las variables en el req.body
     const { body } = req;
+
     if (validarCamposLinea_Bombeo(body)) {
       return res.status(400).send({
         status: "mal",
@@ -136,6 +138,16 @@ export const postLinea_Bombeo = async (req, res) => {
     //se invoca el servicio para registrar una Linea de Bombeo
     const line = await RegisterLinea_Bombeo(nuevaLinea);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR LÍNEA
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "lineas_bombeo",
+      body.numero_linea, // Usamos el número de línea como identificador visual
+      `Registró la Línea de Bombeo #${body.numero_linea} (${body.nombre_linea_bombeo}) en la estación ID: ${id_bombeo}`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Linea de Bombeo registrada correctamente",
@@ -155,17 +167,31 @@ export const deleteLinea_Bombeo = async (req, res) => {
     // se reciben la variable que viene por parametro
     const id_linea_bombeo = req.params.id;
 
-    //Se comprueba si ya existe la Lineas de Bombeo por su Id
-    const search_li = await SearchLinea_BombeoId(id_linea_bombeo);
-    if (search_li === 0) {
+    //Usamos getOneLinea en lugar de Search para rescatar los datos antes de borrar
+    const oneLinea = await getOneLinea_BombeoForId(id_linea_bombeo);
+    if (!oneLinea || oneLinea.length === 0) {
       return res.status(404).send({
         status: "mal",
         description: "Linea de Bombeo no registrada",
       });
     }
 
+    // Rescatamos los datos para la bitácora
+    const nombreEliminado = oneLinea[0].nombre_linea_bombeo;
+    const numeroEliminado = oneLinea[0].numero_linea;
+
     //se invoca el servicio que Elimina la Lineas de Bombeo con ese id
     await deleteOneLinea_BombeoForId(id_linea_bombeo);
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR LÍNEA
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "lineas_bombeo",
+      id_linea_bombeo,
+      `Eliminó permanentemente la Línea de Bombeo #${numeroEliminado} (${nombreEliminado})`,
+    );
 
     res.send({
       status: "ok",
@@ -187,6 +213,7 @@ export const updateLinea_Bombeo = async (req, res) => {
 
     //se reciben las variables en el req.body
     const { body } = req;
+
     if (validarCamposLinea_Bombeo(body)) {
       return res.status(400).send({
         status: "mal",
@@ -208,7 +235,7 @@ export const updateLinea_Bombeo = async (req, res) => {
 
     //Se crea un objeto para pasarlo mas adelante
     const linea = {
-      id_linea_bombeo: id_linea_bombeo, // Obligatorio para identificar la fila a actualizar
+      id_linea_bombeo: id_linea_bombeo,
       numero_linea: body.numero_linea,
       nombre_linea_bombeo: body.nombre_linea_bombeo,
       estado_linea_bombeo: body.estado_linea_bombeo,
@@ -218,6 +245,16 @@ export const updateLinea_Bombeo = async (req, res) => {
 
     //se invoca el servicio para Modificar una Linea de Bombeo
     const li = await modificarLinea_Bombeo(linea);
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR LÍNEA
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "lineas_bombeo",
+      id_linea_bombeo,
+      `Modificó la Línea de Bombeo #${body.numero_linea} (${body.nombre_linea_bombeo}). Nuevo estado: ${body.estado_linea_bombeo}`,
+    );
 
     res.send({
       status: "ok",

@@ -15,6 +15,9 @@ import { uploadClo, deleteClo } from "../../helpers/cloudinary.js";
 //IMPORTAMOS E UTILIZAMOS CLOUDINARY
 import { cloud } from "../../helpers/cloudinary.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 export const getFoto_Est_Bombeo = async (req, res) => {
   try {
     const id_bombeo = req.params.id;
@@ -48,7 +51,6 @@ export const postFoto_Est_Bombeo = async (req, res) => {
     // se reciben la variable que viene por parametros
     const id_bombeo = req.params.id;
 
-    //console.log(req.file.path);
     //Se valida que existan archivos en el arreglo req.files
     if (!req.files || req.files.length === 0) {
       return res.send({
@@ -92,6 +94,17 @@ export const postFoto_Est_Bombeo = async (req, res) => {
       await fs.unlink(file.path);
     }
 
+    // 🌟 REGISTRO EN BITÁCORA: Subida de imágenes
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "est_bombeo_fotos",
+      id_bombeo,
+      `Subió ${req.files.length} nueva(s) fotografía(s) a la estación de bombeo con ID: ${id_bombeo}`,
+    );
+
     res.send({
       status: "ok",
       description:
@@ -131,6 +144,17 @@ export const deleteFoto_Est_Bombeo = async (req, res) => {
 
     // Elimina el archivo físico de la nube
     await deleteClo(id_public);
+
+    // 🌟 REGISTRO EN BITÁCORA: Eliminación de imagen
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "est_bombeo_fotos",
+      id,
+      `Eliminó una fotografía (ID en nube: ${id_public}) del sistema`,
+    );
 
     res.send({
       status: "ok",

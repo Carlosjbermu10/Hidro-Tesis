@@ -8,6 +8,9 @@ import {
   modificarJuegos_Contactos_CCM, // Servicio para modiciar Juegos de Contactos de un CCM
 } from "../../services/ccm/juegos_contactos_ccm.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 //FUNCIÓN AUXILIAR DE VALIDACIÓN TÉCNICA
 const validarCamposContactos = (body) => {
   return (
@@ -112,6 +115,16 @@ export const postJuegos_Contactos_CCM = async (req, res) => {
     //se invoca el servicio para registrar Juegos de Contactos para un CCM
     const jue_ccm = await RegisterJuegos_Contactos_CCM(nuevoJuegoContacto);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR JUEGOS DE CONTACTOS
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "juegos_contactos_ccm",
+      id_ccm,
+      `Registró la configuración de Juegos de Contactos (Bipolar: ${body.bipolar}, Tripolar: ${body.tripolar}) para el CCM ID: ${id_ccm}`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Juegos de Contactos registrado correctamente",
@@ -155,9 +168,23 @@ export const deleteJuegos_Contactos_CCM = async (req, res) => {
     const juego_co = await getOneJuegos_Contactos_CCMForId(id_ccm);
     const id_juegos_contactos_ccm = juego_co[0].id_juegos_contactos_ccm;
 
+    // 💡 Rescatamos los valores de los contactos antes de eliminarlos
+    const tripolarEliminado = juego_co[0].tripolar;
+    const tetrapolarEliminado = juego_co[0].tetrapolar;
+
     //se invoca el servicio que Elimina Juegos de Contactos con ese id
     await deleteOneJuegos_Contactos_CCMForid_juegos_contactos_ccm(
       id_juegos_contactos_ccm,
+    );
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR JUEGOS DE CONTACTOS
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "juegos_contactos_ccm",
+      id_juegos_contactos_ccm,
+      `Eliminó permanentemente los Juegos de Contactos (Cantidades originales -> Tripolar: ${tripolarEliminado}, Tetrapolar: ${tetrapolarEliminado}) del CCM ID: ${id_ccm}`,
     );
 
     res.send({
@@ -225,6 +252,16 @@ export const updateJuegos_Contactos_CCM = async (req, res) => {
 
     //se invoca el servicio para Modificar Juegos de Contactos del CCM
     const de_juegos = await modificarJuegos_Contactos_CCM(juegoContactoAEditar);
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR JUEGOS DE CONTACTOS
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "juegos_contactos_ccm",
+      id_juegos_contactos_ccm,
+      `Actualizó la configuración de Juegos de Contactos del CCM ID: ${id_ccm} (Nuevas cantidades -> Bipolar: ${body.bipolar}, Tripolar: ${body.tripolar})`,
+    );
 
     res.send({
       status: "ok",

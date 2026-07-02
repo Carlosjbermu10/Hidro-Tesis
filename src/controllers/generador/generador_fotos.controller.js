@@ -10,6 +10,9 @@ import {
   DeleteFotoGeneradorId,
 } from "../../services/generador/generador_fotos.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 import { uploadClo, deleteClo } from "../../helpers/cloudinary.js";
 
 //IMPORTAMOS E UTILIZAMOS CLOUDINARY
@@ -92,6 +95,16 @@ export const postFoto_Generador = async (req, res) => {
       await fs.unlink(file.path);
     }
 
+    // 🌟 REGISTRO EN BITÁCORA: Subida de imágenes al Generador
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "generador_fotos",
+      id_generador,
+      `Subió ${req.files.length} nueva(s) fotografía(s) al Generador con ID: ${id_generador}`,
+    );
+
     res.send({
       status: "ok",
       description:
@@ -131,6 +144,16 @@ export const deleteFoto_Generador = async (req, res) => {
 
     // Elimina el archivo físico de la nube
     await deleteClo(id_public);
+
+    // 🌟 REGISTRO EN BITÁCORA: Eliminación de imagen del Generador
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "generador_fotos",
+      id,
+      `Eliminó una fotografía (ID en nube: ${id_public}) de un Generador`,
+    );
 
     res.send({
       status: "ok",

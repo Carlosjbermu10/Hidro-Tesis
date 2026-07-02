@@ -10,6 +10,9 @@ import {
   DeleteFotoTanqueId,
 } from "../../services/tanque/tanque_fotos.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 import { uploadClo, deleteClo } from "../../helpers/cloudinary.js";
 
 //IMPORTAMOS E UTILIZAMOS CLOUDINARY
@@ -92,6 +95,16 @@ export const postFoto_Tanque = async (req, res) => {
       await fs.unlink(file.path);
     }
 
+    // 🌟 REGISTRO EN BITÁCORA: Subida de imágenes al Tanque
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "tanque_fotos",
+      id_tanque,
+      `Subió ${req.files.length} nueva(s) fotografía(s) al Tanque con ID: ${id_tanque}`,
+    );
+
     res.send({
       status: "ok",
       description: "Material fotográfico del Tanque registrado correctamente",
@@ -130,6 +143,16 @@ export const deleteFoto_Tanque = async (req, res) => {
 
     // Elimina el archivo físico de la nube
     await deleteClo(id_public);
+
+    // 🌟 REGISTRO EN BITÁCORA: Eliminación de imagen del Tanque
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "tanque_fotos",
+      id,
+      `Eliminó una fotografía (ID en nube: ${id_public}) de un Tanque`,
+    );
 
     res.send({
       status: "ok",

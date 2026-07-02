@@ -34,6 +34,16 @@ export const postLogin = async (req, res) => {
       });
     }
 
+    // Comprobamos si el usuario está inactivo
+    // Asumimos que 1 es Activo y 0 es Inactivo/Suspendido
+    if (usuario.estado === 0) {
+      return res.status(403).send({
+        status: "mal",
+        description:
+          "Acceso denegado. Este usuario ha sido suspendido por un administrador.",
+      });
+    }
+
     //Comparamos las claves directamente usando los datos que ya tenemos en memoria
     const claveCorrecta = await ValidatePassword(username, password);
     if (!claveCorrecta) {
@@ -59,6 +69,7 @@ export const postLogin = async (req, res) => {
         nombre_completo: usuario.nombre_completo,
         username: usuario.username,
         rol: usuario.rol,
+        estado: usuario.estado,
       },
       token: token,
     });

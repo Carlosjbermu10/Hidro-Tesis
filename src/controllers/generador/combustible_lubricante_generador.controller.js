@@ -8,6 +8,9 @@ import {
   modificarCombustible_Lubricante_Generador, // Servicio para modiciar Combustible_Lubricante de un Generador
 } from "../../services/generador/combustible_lubricante_generador.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 export const getCombustible_Lubricante_GeneradorForId = async (req, res) => {
   try {
     // se reciben la variable que viene por parametro
@@ -56,6 +59,9 @@ export const getCombustible_Lubricante_GeneradorForId = async (req, res) => {
       .send({ status: "error", description: "Error interno del servidor" });
   }
 };
+
+// Asegúrate de importar el servicio de la bitácora en la parte superior
+// import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
 
 export const postCombustible_Lubricante_Generador = async (req, res) => {
   try {
@@ -111,6 +117,16 @@ export const postCombustible_Lubricante_Generador = async (req, res) => {
       nuevosFluidosGenerador,
     );
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR FLUIDOS
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "generador_combustible_lubricante", // Ajusta el nombre si tu tabla se llama distinto
+      id_generador,
+      `Registró la ficha de fluidos (Consumo Combustible: ${body.consumo_combustible}, Tipo Lubricante: ${body.tipo_lubricante}) para el Generador ID: ${id_generador}`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Combustible y Lubricante registrado correctamente",
@@ -155,9 +171,23 @@ export const deleteCombustible_Lubricante_Generador = async (req, res) => {
     const id_generador_combustible_lubricante =
       comb_lubr[0].id_generador_combustible_lubricante;
 
+    // 💡 Rescatamos el tipo de lubricante antes de borrar el registro
+    const tipoLubricanteEliminado =
+      comb_lubr[0].tipo_lubricante || "Desconocido";
+
     //se invoca el servicio que Elimina Combustible_Lubricante con ese id
     await deleteOneCombustible_Lubricante_GeneradorForid_generador_combustible_lubricante(
       id_generador_combustible_lubricante,
+    );
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR FLUIDOS
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "generador_combustible_lubricante",
+      id_generador_combustible_lubricante,
+      `Eliminó permanentemente la ficha de fluidos y consumibles (Tipo Lubricante original: ${tipoLubricanteEliminado}) del Generador ID: ${id_generador}`,
     );
 
     res.send({
@@ -230,6 +260,16 @@ export const updateCombustible_Lubricante_Generador = async (req, res) => {
     //se invoca el servicio para Modificar Combustible_Lubricante del Generador
     const de_com_lu = await modificarCombustible_Lubricante_Generador(
       fluidosGeneradorAEditar,
+    );
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR FLUIDOS
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "generador_combustible_lubricante",
+      id_generador_combustible_lubricante,
+      `Actualizó los parámetros de fluidos del Generador ID: ${id_generador} (Nuevo Consumo Combustible: ${body.consumo_combustible}, Tipo Lubricante: ${body.tipo_lubricante})`,
     );
 
     res.send({

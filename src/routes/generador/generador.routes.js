@@ -17,10 +17,14 @@ const router = Router();
 //RUTAS
 
 //RUTAS DE LECTURA (Acceso para todo el personal logueado)
+
+//RUTA PARA MOSTRAR TODOS LOS GENERADORES
 router.get("/generador", checkAuth, getGenerador);
 
+//RUTA PARA MOSTRAR UN GENERADOR EN ESPECIFICO
 router.get("/generador/:id", checkAuth, getGeneradorForId);
 
+//RUTA PARA MOSTRAR TODOS LOS GENERADORES EN UNA ESTACION DE BOMBEO
 router.get("/generador/estacion/:id", checkAuth, getGeneradorForIdEstacion);
 
 router.get(

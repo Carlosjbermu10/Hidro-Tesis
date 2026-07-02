@@ -9,6 +9,9 @@ import {
   modificarTanque_Generador, //Servicio para modiciar la conexion entre un Tanque y un Generador
 } from "../../services/tanque/tanque_has_generador.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 //VALIDACIÓN
 const validarCamposConexion = (body) => {
   return (
@@ -161,6 +164,16 @@ export const postTanque_Generador = async (req, res) => {
     //se invoca el servicio para registrar un suministro entre el tanque y el generador
     const tanq_gene = await RegisterTanque_Generador(nuevaConexion);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR CONEXIÓN TANQUE-GENERADOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "tanque_generador",
+      `${id_tanque}-${id_generador}`, // Usamos ambos IDs unidos como referencia
+      `Registró una conexión de suministro (Tipo: ${body.tipo_suministro}, Tubería: ${body.diametro_tuberia}) entre el Tanque ID: ${id_tanque} y Generador ID: ${id_generador}`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Conexión tanque-generador registrada correctamente",
@@ -205,8 +218,21 @@ export const deleteTanque_Generador = async (req, res) => {
       });
     }
 
+    // 💡 Rescatamos el tipo de suministro antes de borrar la conexión
+    const tipoEliminado = conexion[0].tipo_suministro || "Desconocido";
+
     //se invoca el servicio que Elimina el Motor con ese id
     await deleteOneTanque_GeneradorForids(id_tanque, id_generador);
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR CONEXIÓN TANQUE-GENERADOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "tanque_generador",
+      `${id_tanque}-${id_generador}`,
+      `Eliminó la conexión de suministro (Tipo original: ${tipoEliminado}) entre el Tanque ID: ${id_tanque} y Generador ID: ${id_generador}`,
+    );
 
     res.send({
       status: "ok",
@@ -273,6 +299,16 @@ export const updateTanque_Generador = async (req, res) => {
 
     //se invoca el servicio para Modificar la conexion entre un Tanque y un Generador
     const tanque_gene = await modificarTanque_Generador(conexionAEditar);
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR CONEXIÓN TANQUE-GENERADOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "tanque_generador",
+      `${id_tanque}-${id_generador}`,
+      `Modificó la conexión de suministro entre el Tanque ID: ${id_tanque} y Generador ID: ${id_generador} (Nuevo Tipo: ${body.tipo_suministro}, Longitud: ${body.longitud_linea}m)`,
+    );
 
     res.send({
       status: "ok",

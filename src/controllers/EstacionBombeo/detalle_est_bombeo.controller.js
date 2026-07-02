@@ -8,6 +8,9 @@ import {
   modificarDetalleEstacion, // Servicio para modiciar una Estación de bombeo
 } from "../../services/EstacionBombeo/detalle_est_bombeo.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 //FUNCIÓN AUXILIAR DE VALIDACIÓN DE CAMPOS TÉCNICOS ---
 const validarCamposDetalle = (body) => {
   return (
@@ -30,12 +33,43 @@ const validarCamposDetalle = (body) => {
   );
 };
 
+// 🛡️ Función auxiliar para validar la coordenada GPS antes de guardar o modificar
+const validarCoordenadaGPS = (coordenada) => {
+  if (!coordenada || typeof coordenada !== "string") {
+    return { valido: false, msg: "La coordenada GPS es obligatoria" };
+  }
+
+  const regexGPS = /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/;
+  if (!regexGPS.test(coordenada.trim())) {
+    return {
+      valido: false,
+      msg: "Formato GPS inválido. Use grados decimales (Ej: '10.997100, -63.911500')",
+    };
+  }
+
+  const [latStr, lngStr] = coordenada.split(",");
+  const lat = parseFloat(latStr.trim());
+  const lng = parseFloat(lngStr.trim());
+
+  const LAT_MIN = 10.7;
+  const LAT_MAX = 11.3;
+  const LNG_MIN = -64.5;
+  const LNG_MAX = -63.6;
+
+  if (lat < LAT_MIN || lat > LAT_MAX || lng < LNG_MIN || lng > LNG_MAX) {
+    return {
+      valido: false,
+      msg: "La coordenada se encuentra fuera del rango asignado para el Estado Nueva Esparta",
+    };
+  }
+
+  return { valido: true };
+};
+
 export const getDetalle_EstacionForId = async (req, res) => {
   try {
-    // se reciben la variable que viene por parametro
     const id_bombeo = req.params.id;
 
-    //Se comprueba si ya existe la Estaciones de bombeo
     const search_es = await SearchEstacionId(id_bombeo);
     if (search_es === 0) {
       return res.status(404).send({
@@ -44,7 +78,6 @@ export const getDetalle_EstacionForId = async (req, res) => {
       });
     }
 
-    //Se comprueba si la Estacion de bombeo posee detalles
     const search_detalle = await SearchDetalle_EstacionId(id_bombeo);
     if (search_detalle === 0) {
       return res.status(404).send({
@@ -54,11 +87,9 @@ export const getDetalle_EstacionForId = async (req, res) => {
       });
     }
 
-    //Se invoca el servicio que devuelve los detalles de la Estación de bombeo con ese id
     const est = await getOneDetalle_EstacionForId(id_bombeo);
     const id_detalle = est[0].id_detalle_est;
 
-    //Se invoca el servicio que devuelve el id_detalles con el id_bombeo
     const deta = await getOneDetalle_EstacionForId_Detalle(id_detalle);
 
     res.send({
@@ -77,13 +108,9 @@ export const getDetalle_EstacionForId = async (req, res) => {
 
 export const postDetalle_Estacion = async (req, res) => {
   try {
-    // se reciben la variable que viene por parametro
     const id_bombeo = req.params.id;
-
-    //se reciben las variables en el req.body
     const { body } = req;
 
-    // Validación consistente
     if (validarCamposDetalle(body)) {
       return res.status(400).send({
         status: "mal",
@@ -92,7 +119,14 @@ export const postDetalle_Estacion = async (req, res) => {
       });
     }
 
-    //Se comprueba si ya existe la Estaciones de bombeo
+    const checkGPS = validarCoordenadaGPS(body.coordenada_gps);
+    if (!checkGPS.valido) {
+      return res.status(400).send({
+        status: "mal",
+        description: checkGPS.msg,
+      });
+    }
+
     const search_es = await SearchEstacionId(id_bombeo);
     if (search_es === 0) {
       return res.status(404).send({
@@ -101,7 +135,6 @@ export const postDetalle_Estacion = async (req, res) => {
       });
     }
 
-    //Se comprueba si la Estacion de bombeo posee detalles
     const search_detalle = await SearchDetalle_EstacionId(id_bombeo);
     if (search_detalle !== 0) {
       return res.status(409).send({
@@ -111,7 +144,6 @@ export const postDetalle_Estacion = async (req, res) => {
       });
     }
 
-    //Se crea un objeto para pasarlo mas adelante
     const det_est = {
       municipio: body.municipio,
       ubicacion: body.ubicacion,
@@ -132,8 +164,18 @@ export const postDetalle_Estacion = async (req, res) => {
       est_bombeo_id_est: id_bombeo,
     };
 
-    //se invoca el servicio para registrar un usuario
     const de_es = await RegisterDetalle_Estacion(det_est);
+
+    // 🌟 REGISTRO EN BITÁCORA: CREAR DETALLES
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "detalle_estacion",
+      id_bombeo,
+      `Creó la ficha técnica inicial en el municipio ${body.municipio} (${body.ubicacion}) para la estación ID: ${id_bombeo}`,
+    );
 
     res.status(201).send({
       status: "ok",
@@ -152,10 +194,8 @@ export const postDetalle_Estacion = async (req, res) => {
 
 export const deleteDetalle_Estacion = async (req, res) => {
   try {
-    // se reciben la variable que viene por parametro
     const id_bombeo = req.params.id;
 
-    //Se comprueba si ya existe la Estaciones de bombeo
     const search_es = await SearchEstacionId(id_bombeo);
     if (search_es === 0) {
       return res.status(404).send({
@@ -164,7 +204,6 @@ export const deleteDetalle_Estacion = async (req, res) => {
       });
     }
 
-    //Se comprueba si la estacion de bombeo cuenta con detalles
     const searchDetalle = await SearchDetalle_EstacionId(id_bombeo);
     if (searchDetalle === 0) {
       return res.status(404).send({
@@ -174,12 +213,22 @@ export const deleteDetalle_Estacion = async (req, res) => {
       });
     }
 
-    //Se invoca el servicio que devuelve los detalles de la Estación de bombeo con ese id
     const est = await getOneDetalle_EstacionForId(id_bombeo);
     const id_detalle = est[0].id_detalle_est;
+    const municipioEliminado = est[0].municipio; // Salvamos el municipio antes de borrar
 
-    //se invoca el servicio que Elimina la Estación de bombeo con ese id
-    const del = await deleteOneDetalleEstacionForId_Detalle(id_detalle);
+    await deleteOneDetalleEstacionForId_Detalle(id_detalle);
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR DETALLES
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "detalle_estacion",
+      id_bombeo,
+      `Eliminó permanentemente la ficha de detalles técnicos de la estación ID: ${id_bombeo} (Municipio original: ${municipioEliminado})`,
+    );
 
     res.send({
       status: "ok",
@@ -197,11 +246,9 @@ export const deleteDetalle_Estacion = async (req, res) => {
 
 export const updateDetalle_Estacion = async (req, res) => {
   try {
-    // se reciben la variable que viene por parametro
     const id_bombeo = req.params.id;
-
-    //se reciben las variables en el req.body
     const { body } = req;
+
     if (validarCamposDetalle(body)) {
       return res.status(400).send({
         status: "mal",
@@ -210,7 +257,16 @@ export const updateDetalle_Estacion = async (req, res) => {
       });
     }
 
-    //Se comprueba si ya existe la Estaciones de bombeo por su id
+    const { coordenada_gps } = req.body;
+
+    const checkGPS = validarCoordenadaGPS(coordenada_gps);
+    if (!checkGPS.valido) {
+      return res.status(400).send({
+        status: "mal",
+        description: checkGPS.msg,
+      });
+    }
+
     const search_es = await SearchEstacionId(id_bombeo);
     if (search_es === 0) {
       return res.status(404).send({
@@ -219,7 +275,6 @@ export const updateDetalle_Estacion = async (req, res) => {
       });
     }
 
-    //Se comprueba si la estacion de bombeo cuenta con detalles
     const searchDetalle = await SearchDetalle_EstacionId(id_bombeo);
     if (searchDetalle === 0) {
       return res.status(404).send({
@@ -229,11 +284,9 @@ export const updateDetalle_Estacion = async (req, res) => {
       });
     }
 
-    //Obtenemos el registro existente para extraer la PK real del detalle
     const estExistente = await getOneDetalle_EstacionForId(id_bombeo);
     const id_detalle_est = estExistente[0].id_detalle_est;
 
-    //Se crea un objeto para pasarlo mas adelante
     const detalleEst = {
       id_detalle_est: id_detalle_est,
       ubicacion: body.ubicacion,
@@ -252,11 +305,21 @@ export const updateDetalle_Estacion = async (req, res) => {
       sistema_bombeo: body.sistema_bombeo,
       linea_bombeo: body.linea_bombeo,
       grupo_bombeo: body.grupo_bombeo,
-      est_bombeo_id_est: id_bombeo, // Esta es la llave foránea
+      est_bombeo_id_est: id_bombeo,
     };
 
-    //se invoca el servicio para Modificar los Detalles de una Estacion de Bombeo
-    const de = await modificarDetalleEstacion(detalleEst);
+    const de = await modificarDetailEstacion(detalleEst);
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR DETALLES (El corazón del mapa interactivo)
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "detalle_estacion",
+      id_bombeo,
+      `Actualizó la ficha técnica. Ubicación: ${body.ubicacion}, GPS: [${body.coordenada_gps}], Caudal Operación: ${body.caudal_operacion} L/s.`,
+    );
 
     res.send({
       status: "ok",

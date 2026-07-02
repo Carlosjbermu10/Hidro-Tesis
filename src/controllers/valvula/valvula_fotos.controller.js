@@ -10,6 +10,9 @@ import {
   DeleteFotoValvulaId,
 } from "../../services/valvula/valvula_fotos.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 import { uploadClo, deleteClo } from "../../helpers/cloudinary.js";
 
 //IMPORTAMOS E UTILIZAMOS CLOUDINARY
@@ -92,6 +95,16 @@ export const postFoto_Valvula = async (req, res) => {
       await fs.unlink(file.path);
     }
 
+    // 🌟 REGISTRO EN BITÁCORA: Subida de imágenes a la válvula
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "valvula_fotos", // Ajusta el nombre si tu tabla se llama distinto
+      id_valvula,
+      `Subió ${req.files.length} nueva(s) fotografía(s) a la Válvula con ID: ${id_valvula}`,
+    );
+
     res.send({
       status: "ok",
       description:
@@ -131,6 +144,16 @@ export const deleteFoto_Valvula = async (req, res) => {
 
     // Elimina el archivo físico de la nube
     await deleteClo(id_public);
+
+    // 🌟 REGISTRO EN BITÁCORA: Eliminación de imagen de la válvula
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "valvula_fotos",
+      id,
+      `Eliminó una fotografía (ID en nube: ${id_public}) de una Válvula`,
+    );
 
     res.send({
       status: "ok",

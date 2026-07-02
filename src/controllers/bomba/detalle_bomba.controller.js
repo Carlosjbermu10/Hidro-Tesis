@@ -129,6 +129,16 @@ export const postDetalle_Bomba = async (req, res) => {
     //se invoca el servicio para registrar un detalle para una Bomba
     const de_bo = await RegisterDetalle_Bomba(det_bom);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR DETALLES DE BOMBA
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "detalle_bomba",
+      id_bomba,
+      `Registró la ficha técnica de la Bomba ID: ${id_bomba} (Potencia: ${body.pot_nom_bomba_hp} HP, Velocidad: ${body.vel_nom_bomba_rpm} RPM)`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Detalles de la bomba registrados correctamente",
@@ -159,8 +169,22 @@ export const deleteDetalle_Bomba = async (req, res) => {
       });
     }
 
+    // 💡 Rescatamos los datos clave de la ficha antes de eliminarla
+    const idBombaAsociada = searchDetalle[0].bomba_id_bomba;
+    const potenciaEliminada = searchDetalle[0].pot_nom_bomba_hp;
+
     // 🌟 Invocamos tu servicio de eliminación pasándole el id_detalle limpio
     await deleteOneDetalleBombaForId_Detalle(id_detalle);
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR DETALLES DE BOMBA
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "detalle_bomba",
+      id_detalle,
+      `Eliminó permanentemente la ficha técnica (Potencia original: ${potenciaEliminada} HP) asociada a la Bomba ID: ${idBombaAsociada}`,
+    );
 
     res.send({
       status: "ok",
@@ -236,6 +260,16 @@ export const updateDetalle_Bomba = async (req, res) => {
 
     //se invoca el servicio para Modificar los Detalles de una Bomba
     const de_bomba = await modificarDetalleBomba(det_bom);
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR DETALLES DE BOMBA
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "detalle_bomba",
+      id_bomba,
+      `Actualizó la ficha técnica de la Bomba ID: ${id_bomba} (Nueva Potencia: ${body.pot_nom_bomba_hp} HP, Elevación: ${body.alt_elevacion_bomba}m)`,
+    );
 
     res.send({
       status: "ok",

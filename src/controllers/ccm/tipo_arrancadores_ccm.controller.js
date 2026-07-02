@@ -8,6 +8,9 @@ import {
   modificarArrancadores_CCM, // Servicio para modiciar Tipo de Arrancadores de un CCM
 } from "../../services/ccm/tipo_arrancadores_ccm.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 //FUNCIÓN AUXILIAR DE VALIDACIÓN TÉCNICA
 const validarCamposArrancadores = (body) => {
   return (
@@ -126,6 +129,16 @@ export const postArrancadores_CCM = async (req, res) => {
     //se invoca el servicio para registrar un Tipo de Arrancador para un CCM
     const ar_ccm = await RegisterArrancadores_CCM(nuevoTipoArrancador);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR ARRANCADORES
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "arrancadores_ccm", // Ajusta si el nombre de tu tabla varía
+      id_ccm,
+      `Registró el esquema técnico de arrancadores y protecciones para el CCM ID: ${id_ccm}`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Tipo de Arrancadores registrado correctamente",
@@ -170,6 +183,16 @@ export const deleteArrancadores_CCM = async (req, res) => {
 
     //se invoca el servicio que Elimina Tipo de Arrancadores con ese id
     await deleteOneArrancadores_CCMForId_Detalle(id_tipo_arrancadores_ccm);
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR ARRANCADORES
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "arrancadores_ccm",
+      id_tipo_arrancadores_ccm,
+      `Eliminó permanentemente la configuración de arrancadores asociada al CCM ID: ${id_ccm}`,
+    );
 
     res.send({
       status: "ok",
@@ -242,6 +265,16 @@ export const updateArrancadores_CCM = async (req, res) => {
 
     //se invoca el servicio para Modificar Tipo de Arrancadores del CCM
     const de_arranca = await modificarArrancadores_CCM(tipoArrancadorAEditar);
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR ARRANCADORES
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "arrancadores_ccm",
+      id_tipo_arrancadores_ccm,
+      `Actualizó los componentes del sistema de arrancadores y protecciones para el CCM ID: ${id_ccm}`,
+    );
 
     res.send({
       status: "ok",

@@ -10,6 +10,9 @@ import {
   getTanquesTotalForIdEstacion, // Servicio que extrae el tanque con sus fotos de una estacion de bombeo
 } from "../../services/tanque/tanque.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 // --- VALIDACIÓN DRY ---
 const validarCamposTanque = (body) => {
   // Se validan los campos, incluso los que admiten NULL en BD, para asegurar
@@ -184,6 +187,16 @@ export const postTanque = async (req, res) => {
     //se invoca el servicio para registrar un Tanque
     const tanque = await RegisterTanque(nuevoTanque);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR TANQUE
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "tanques",
+      id_bombeo, // Referencia a la estación
+      `Registró un nuevo Tanque (Posición: ${body.posicion}, Geometría: ${body.geometria}, Capacidad: ${body.cap_max_tanque}L) en la Estación ID: ${id_bombeo}`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Tanque registrado correctamente",
@@ -203,17 +216,32 @@ export const deleteTanque = async (req, res) => {
     // se reciben la variable que viene por parametro
     const id_tanque = req.params.id;
 
-    //Se comprueba si ya existe el Tanque por su Id
-    const search_gene = await SearchTanqueId(id_tanque);
-    if (search_gene === 0) {
+    //  Usamos getOneTanqueForId en lugar de Search para extraer los datos antes del delete
+    const oneTanque = await getOneTanqueForId(id_tanque);
+    if (!oneTanque || oneTanque.length === 0) {
       return res.status(404).send({
         status: "mal",
         description: "Tanque no registrado",
       });
     }
 
+    // Rescatamos los datos del tanque antes de su eliminación
+    const capacidadEliminada = oneTanque[0].cap_max_tanque;
+    const posicionEliminada = oneTanque[0].posicion;
+    const idEstacionAsociada = oneTanque[0].est_bombeo_id_est;
+
     //se invoca el servicio que Elimina el Tanque con ese id
     await deleteOneTanqueForId(id_tanque);
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR TANQUE
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "tanques",
+      id_tanque,
+      `Eliminó permanentemente un Tanque (Posición: ${posicionEliminada}, Capacidad original: ${capacidadEliminada}L) de la Estación ID: ${idEstacionAsociada}`,
+    );
 
     res.send({
       status: "ok",
@@ -244,17 +272,16 @@ export const updateTanque = async (req, res) => {
       });
     }
 
-    //Se comprueba si ya existe el Tanque por su Id
-    const search_gene = await SearchTanqueId(id_tanque);
-    if (search_gene === 0) {
+    //Se invoca el servicio que devuelve el Tanque con ese id
+    const oneTanque = await getOneTanqueForId(id_tanque);
+
+    //Se comprueba si ya existe el Tanque por su Id (validando la consulta anterior)
+    if (!oneTanque || oneTanque.length === 0) {
       return res.status(404).send({
         status: "mal",
         description: "Tanque no registrado",
       });
     }
-
-    //Se invoca el servicio que devuelve el Tanque con ese id
-    const oneTanque = await getOneTanqueForId(id_tanque);
 
     //Se crea un objeto para pasarlo mas adelante
     const tanqueAEditar = {
@@ -276,6 +303,16 @@ export const updateTanque = async (req, res) => {
 
     //se invoca el servicio para Modificar un Tanque
     const ta = await modificarTanque(tanqueAEditar);
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR TANQUE
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "tanques",
+      id_tanque,
+      `Actualizó las especificaciones del Tanque (Nuevos Litros Totales: ${body.total_litros}L, Material: ${body.material_tanque})`,
+    );
 
     res.send({
       status: "ok",

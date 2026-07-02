@@ -10,6 +10,9 @@ import {
   modificarCCM, // Servicio para modiciar un CCM
 } from "../../services/ccm/ccm.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 //FUNCIÓN AUXILIAR DE VALIDACIÓN TÉCNICA
 const validarCamposCCM = (body) => {
   return (
@@ -179,6 +182,16 @@ export const postCCM = async (req, res) => {
     //se invoca el servicio para registrar un CCM
     const ccmaq = await RegisterCCM(nuevoCCM);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR CCM
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "ccm", // Ajusta el nombre si tu tabla se llama distinto
+      id_bombeo, // Referencia a la estación de bombeo
+      `Registró un Centro de Control de Máquinas (Tipo: ${body.tipo_ccm}, PLC: ${body.plc}, Variador: ${body.varia_veloc}) en la Estación ID: ${id_bombeo}`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Centro de Control de Máquinas registrado correctamente",
@@ -188,7 +201,7 @@ export const postCCM = async (req, res) => {
     console.log(error);
     res.status(500).send({
       status: "error",
-      description: "Error interno del servidor al registrar el CCM",
+      description: "Error interno del servidor al registrar the CCM",
     });
   }
 };
@@ -198,17 +211,31 @@ export const deleteCCM = async (req, res) => {
     // se reciben la variable que viene por parametro
     const id_ccm = req.params.id;
 
-    //Se comprueba si ya existe el CCM por su Id
-    const search_ccm = await SearchCCMId(id_ccm);
-    if (search_ccm === 0) {
+    // 💡 CAMBIO CLAVE: Usamos getOneCCMForId en lugar de Search para rescatar datos antes de borrar
+    const oneCCM = await getOneCCMForId(id_ccm);
+    if (!oneCCM || oneCCM.length === 0) {
       return res.status(404).send({
         status: "mal",
         description: "Centro de Control de Máquinas no registrado",
       });
     }
 
+    // Rescatamos los datos clave del CCM antes de eliminarlo
+    const tipoEliminado = oneCCM[0].tipo_ccm;
+    const idEstacionAsociada = oneCCM[0].est_bombeo_id_est;
+
     //se invoca el servicio que Elimina el CCM con ese id
     await deleteOneCCMForId(id_ccm);
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR CCM
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "ccm",
+      id_ccm,
+      `Eliminó permanentemente el Centro de Control de Máquinas (Tipo original: ${tipoEliminado}) de la Estación ID: ${idEstacionAsociada}`,
+    );
 
     res.send({
       status: "ok",
@@ -266,6 +293,16 @@ export const updateCCM = async (req, res) => {
 
     //se invoca el servicio para Modificar un CCM
     const ccmaq = await modificarCCM(ccmAEditar);
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR CCM
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "ccm",
+      id_ccm,
+      `Modificó las especificaciones técnicas del CCM ID: ${id_ccm} (Tipo: ${body.tipo_ccm}, PLC: ${body.plc}, Variador: ${body.varia_veloc})`,
+    );
 
     res.send({
       status: "ok",

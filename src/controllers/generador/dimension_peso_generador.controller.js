@@ -8,6 +8,9 @@ import {
   modificarDimension_Peso_Generador, // Servicio para modiciar Dimension_Peso de un Generador
 } from "../../services/generador/dimension_peso_generador.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 export const getDimension_Peso_GeneradorForId = async (req, res) => {
   try {
     // se reciben la variable que viene por parametro
@@ -110,6 +113,16 @@ export const postDimension_Peso_Generador = async (req, res) => {
     const di_pe_gene =
       await RegisterDimension_Peso_Generador(nuevaDimensionPeso);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR DIMENSIÓN Y PESO
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "generador_dimension_peso", // Ajusta el nombre si tu tabla se llama distinto
+      id_generador,
+      `Registró la ficha física (Peso: ${body.peso}, Autonomía: ${body.autonomia}hrs, Capacidad Tanque: ${body.cap_deposito_combustible_propio}L) para el Generador ID: ${id_generador}`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Dimension y Peso registrado correctamente",
@@ -152,11 +165,25 @@ export const deleteDimension_Peso_Generador = async (req, res) => {
     const id_generador_dimension_peso =
       dime_peso[0].id_generador_dimension_peso;
 
+    // 💡 Rescatamos los datos clave de la ficha física antes de que desaparezca
+    const pesoEliminado = dime_peso[0].peso;
+    const autonomiaEliminada = dime_peso[0].autonomia;
+
     //se invoca el servicio que Elimina el Dimension_Peso con ese id
     const del =
       await deleteOneDimension_Peso_GeneradorForid_generador_dimension_peso(
         id_generador_dimension_peso,
       );
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR DIMENSIÓN Y PESO
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "generador_dimension_peso",
+      id_generador_dimension_peso,
+      `Eliminó permanentemente la ficha física (Peso original: ${pesoEliminado}, Autonomía: ${autonomiaEliminada}hrs) asociada al Generador ID: ${id_generador}`,
+    );
 
     res.send({
       status: "ok",
@@ -229,6 +256,16 @@ export const updateDimension_Peso_Generador = async (req, res) => {
     //se invoca el servicio para Modificar Dimension_Peso del Generador
     const de_dim_pe =
       await modificarDimension_Peso_Generador(dimensionPesoAEditar);
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR DIMENSIÓN Y PESO
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "generador_dimension_peso",
+      id_generador_dimension_peso,
+      `Actualizó la ficha física del Generador ID: ${id_generador} (Nuevo Peso: ${body.peso}, Capacidad tanque: ${body.cap_deposito_combustible_propio}L)`,
+    );
 
     res.send({
       status: "ok",

@@ -9,6 +9,9 @@ import {
   modificarBancoTransformadores, // Servicio para modiciar un Banco de Trasnformadores
 } from "../../services/bancoTransformadores/banco_transformadores.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 //FUNCIÓN AUXILIAR DE VALIDACIÓN TÉCNICA ---
 const validarCamposTransformador = (body) => {
   return (
@@ -174,6 +177,16 @@ export const postBanco_transformadores = async (req, res) => {
     //se invoca el servicio para registrar un Banco de Transformadores
     const ba = await RegisterBancoTransformadores(nuevoTransformador);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR TRANSFORMADOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "banco_transformadores",
+      id_bombeo, // Referencia a la estación donde se instaló
+      `Registró un Banco de Transformadores (Tipo: ${body.tipo}, Marca: ${body.marca}, Potencia: ${body.potencia_nominal}) en la estación ID: ${id_bombeo}`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Banco de Transformadores registrado correctamente",
@@ -193,19 +206,33 @@ export const deleteBanco_transformadores = async (req, res) => {
     // se reciben la variable que viene por parametro
     const id_banco_transformadores = req.params.id;
 
-    //Se comprueba si ya existe el Banco de Transformadores por su Id
-    const search_ba = await SearchBancoTransformadoresId(
+    // Usamos getOne... para rescatar los datos antes de borrar
+    const oneBanco = await getOneBancoTransformadoresForId(
       id_banco_transformadores,
     );
-    if (search_ba === 0) {
+    if (!oneBanco || oneBanco.length === 0) {
       return res.status(404).send({
         status: "mal",
         description: "Banco de Transformadores no registrada",
       });
     }
 
+    // Rescatamos los datos para la bitácora antes de que desaparezcan
+    const tipoEliminado = oneBanco[0].tipo;
+    const marcaEliminada = oneBanco[0].marca;
+
     //se invoca el servicio que Elimina el Banco de Transformadores con ese id
     await deleteOneBancoTransformadoresForId(id_banco_transformadores);
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR TRANSFORMADOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "banco_transformadores",
+      id_banco_transformadores,
+      `Eliminó permanentemente el Banco de Transformadores (Tipo original: ${tipoEliminado}, Marca: ${marcaEliminada})`,
+    );
 
     res.send({
       status: "ok",
@@ -277,6 +304,16 @@ export const updateBanco_transformadores = async (req, res) => {
 
     //se invoca el servicio para Modificar un Banco de Transformadores
     const trasf = await modificarBancoTransformadores(transformador);
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR TRANSFORMADOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "banco_transformadores",
+      id_banco_transformadores,
+      `Modificó los datos técnicos del Banco de Transformadores (Tipo: ${body.tipo}, Marca: ${body.marca})`,
+    );
 
     res.send({
       status: "ok",

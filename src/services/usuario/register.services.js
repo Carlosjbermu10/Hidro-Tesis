@@ -46,3 +46,21 @@ export const RegisterUser = async (nuevoUsuario) => {
 
   return result;
 };
+
+export const getUsuariosRegistrados = async () => {
+  // Extraemos los datos necesarios para la gestión, protegiendo el campo 'password'
+  const query = `
+    SELECT 
+      id_usuario, 
+      nombre_completo, 
+      username, 
+      rol, 
+      estado, 
+      created_at 
+    FROM usuario 
+    ORDER BY created_at DESC
+  `;
+
+  const [usuarios] = await pool.query(query);
+  return usuarios;
+};

@@ -17,10 +17,14 @@ const router = Router();
 //RUTAS
 
 //RUTAS DE LECTURA (Acceso para todo el personal logueado)
+
+//RUTA PARA MOSTRAR TODOS LOS TANQUES
 router.get("/tanque", checkAuth, getTanque);
 
+//RUTA PARA MOSTRAR UN TANQUE EN ESPECIFICO
 router.get("/tanque/:id", checkAuth, getTanqueForId);
 
+//RUTA PARA MOSTRAR TODOS LOS TANQUES EN UNA ESTACION DE BOMBEO
 router.get("/tanque/estacion/:id", checkAuth, getTanqueForIdEstacion);
 
 router.get(

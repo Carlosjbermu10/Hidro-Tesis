@@ -8,6 +8,9 @@ import {
   modificarMotor_Generador, // Servicio para modiciar Motor de un Generador
 } from "../../services/generador/motor_generador.service.js";
 
+// 🔗 IMPORTAMOS LA BITÁCORA
+import { InsertarBitacora } from "../../services/bitacora/bitacora.service.js";
+
 export const getMotor_GeneradorForId = async (req, res) => {
   try {
     // se reciben la variable que viene por parametro
@@ -118,6 +121,16 @@ export const postMotor_Generador = async (req, res) => {
     //se invoca el servicio para registrar Motor para un Generador
     const motor_gene = await RegisterMotor_Generador(nuevoMotorGenerador);
 
+    // 🌟 REGISTRO EN BITÁCORA: CREAR MOTOR DE GENERADOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "REGISTRAR",
+      "motor_generador", // Ajusta si tu tabla se llama distinto
+      id_generador,
+      `Registró el Motor (Marca: ${body.marca}, Modelo: ${body.modelo}, Potencia: ${body.potencia_motor}) para el Generador ID: ${id_generador}`,
+    );
+
     res.status(201).send({
       status: "ok",
       description: "Motor registrado correctamente",
@@ -158,9 +171,23 @@ export const deleteMotor_Generador = async (req, res) => {
     const motor_gene = await getOneMotor_GeneradorForId(id_generador);
     const id_generador_motor = motor_gene[0].id_generador_motor;
 
+    // 💡 Rescatamos los datos clave del motor antes de eliminarlo
+    const marcaEliminada = motor_gene[0].marca;
+    const modeloEliminado = motor_gene[0].modelo;
+
     //se invoca el servicio que Elimina el Motor con ese id
     const del =
       await deleteOneMotor_GeneradorForid_generador_motor(id_generador_motor);
+
+    // 🌟 REGISTRO EN BITÁCORA: ELIMINAR MOTOR DE GENERADOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "ELIMINAR",
+      "motor_generador",
+      id_generador_motor,
+      `Eliminó permanentemente el Motor (Marca original: ${marcaEliminada}, Modelo: ${modeloEliminado}) asociado al Generador ID: ${id_generador}`,
+    );
 
     res.send({
       status: "ok",
@@ -244,6 +271,16 @@ export const updateMotor_Generador = async (req, res) => {
 
     //se invoca el servicio para Modificar Motor del Generador
     const de_motor_gene = await modificarMotor_Generador(motorGeneradorAEditar);
+
+    // 🌟 REGISTRO EN BITÁCORA: MODIFICAR MOTOR DE GENERADOR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    await InsertarBitacora(
+      idUsuario,
+      "MODIFICAR",
+      "motor_generador",
+      id_generador_motor,
+      `Actualizó las especificaciones del Motor asociado al Generador ID: ${id_generador} (Marca: ${body.marca}, Combustible: ${body.combistible}, Arranque: ${body.sistema_arranque})`,
+    );
 
     res.send({
       status: "ok",
