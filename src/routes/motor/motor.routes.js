@@ -3,6 +3,7 @@ import {
   getMotor,
   getMotorForId,
   getMotorForIdBomba,
+  getMotorForIdEstacion,
   postMotor,
   deleteMotor,
   updateMotor,
@@ -21,6 +22,8 @@ router.get("/motor", checkAuth, getMotor);
 router.get("/motor/:id", checkAuth, getMotorForId);
 
 router.get("/motor/bomba/:id", checkAuth, getMotorForIdBomba);
+
+router.get("/motor/estacion/:id", checkAuth, getMotorForIdEstacion);
 
 //RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
 router.post(

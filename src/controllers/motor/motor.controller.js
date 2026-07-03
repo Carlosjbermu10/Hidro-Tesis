@@ -1,4 +1,5 @@
 import {
+  SearchEstacionId, //Servicio que busca si ya existe una Estacion de bombeo por su id
   SearchBombaId, //Servicio que busca si ya existe una Bomba por su id
   getAllMotor, //Servicio que devuelve todos los motores
   SearchMotorId, //Servicio que busca si ya existe un motor por su id
@@ -9,6 +10,7 @@ import {
   deleteOneMotorForId, // Servicio que Elimina el motor con ese id
   modificarMotor, // Servicio para modiciar un Motor
   SearchMotorCodigoId, // Servicio que compara el id de un Motor con el codigo
+  SearchMotorIdEstacion, // Servicio que devuelve los Motores filtrados por el ID de la Estación de Bombeo
 } from "../../services/motor/motor.service.js";
 
 // 🔗 IMPORTAMOS LA BITÁCORA
@@ -103,6 +105,36 @@ export const getMotorForIdBomba = async (req, res) => {
     res.status(500).send({
       status: "error",
       description: "Error interno del servidor al buscar motores por su Bomba",
+    });
+  }
+};
+
+export const getMotorForIdEstacion = async (req, res) => {
+  try {
+    const id_estacion = req.params.id;
+
+    //Se comprueba si ya existe la Estacion de bombeo
+    const search_es = await SearchEstacionId(id_estacion);
+    if (search_es === 0) {
+      return res.status(404).send({
+        status: "mal",
+        description: "Estación de bombeo no registrada",
+      });
+    }
+
+    // Invocamos el servicio con el doble JOIN
+    const est_motor = await SearchMotorIdEstacion(id_estacion);
+
+    res.send({
+      status: "ok",
+      description: "Los motores que pertenecen a esta Estación de bombeo",
+      data: est_motor,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      description: "Error interno del servidor al buscar motores por estación",
     });
   }
 };

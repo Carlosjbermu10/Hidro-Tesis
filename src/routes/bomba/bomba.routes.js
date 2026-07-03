@@ -3,6 +3,7 @@ import {
   getBomba,
   getBombaForId,
   getBombaForIdLineaBombeo,
+  getBombaForIdEstacion,
   postBomba,
   deleteBomba,
   updateBomba,
@@ -21,6 +22,8 @@ router.get("/bomba", checkAuth, getBomba);
 router.get("/bomba/:id", checkAuth, getBombaForId);
 
 router.get("/bomba/linea_bombeo/:id", checkAuth, getBombaForIdLineaBombeo);
+
+router.get("/bomba/estacion/:id", checkAuth, getBombaForIdEstacion);
 
 //RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
 router.post(

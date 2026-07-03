@@ -1,4 +1,5 @@
 import {
+  SearchEstacionId, //Servicio que busca si ya existe una Estacion de bombeo por su id
   SearchLinea_BombeoId, //Servicio que busca si ya existe una Linea de bombeo por su id
   getAllBomba, //Servicio que devuelve todos las Bombas
   SearchBombaId, //Servicio que busca si ya existe un motor por su id
@@ -7,6 +8,7 @@ import {
   RegisterBomba, // Servicio para registrar una Bomba
   deleteOneBombaForId, // Servicio que Elimina la Bomba con ese id
   modificarBomba, // Servicio para modiciar una Bomba
+  SearchBombaIdEstacion, // Servicio que devuelve las Bombas filtradas por el ID de la Estación de Bombeo
 } from "../../services/bomba/bomba.service.js";
 
 // 🔗 IMPORTAMOS LA BITÁCORA
@@ -92,6 +94,36 @@ export const getBombaForIdLineaBombeo = async (req, res) => {
     res.send({
       status: "ok",
       description: "Las Bombas que pertencen a esta Linea de bombeo",
+      data: est_bomba,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      description: "Error interno del servidor al buscar bombas por estación",
+    });
+  }
+};
+
+export const getBombaForIdEstacion = async (req, res) => {
+  try {
+    const id_estacion = req.params.id;
+
+    //Se comprueba si ya existe la Estacion de bombeo
+    const search_es = await SearchEstacionId(id_estacion);
+    if (search_es === 0) {
+      return res.status(404).send({
+        status: "mal",
+        description: "Estación de bombeo no registrada",
+      });
+    }
+
+    // Invocamos el servicio con el JOIN
+    const est_bomba = await SearchBombaIdEstacion(id_estacion);
+
+    res.send({
+      status: "ok",
+      description: "Las Bombas que pertenecen a esta Estación de bombeo",
       data: est_bomba,
     });
   } catch (error) {

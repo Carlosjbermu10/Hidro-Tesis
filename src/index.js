@@ -48,6 +48,7 @@ import registerRoutes from "./routes/usuario/register.routes.js";
 import loginRoutes from "./routes/usuario/login.routes.js";
 import est_bombeo_reporteRoutes from "./routes/pdf/est_bombeo_reporte.routes.js";
 import bitacoraRoutes from "./routes/bitacora/bitacora.routes.js";
+import mantenimientoRoutes from "./routes/mantenimiento/mantenimiento.routes.js";
 
 const app = express();
 
@@ -115,6 +116,7 @@ app.use(tanque_fotosRoutes);
 app.use(registerRoutes);
 app.use(loginRoutes);
 app.use(bitacoraRoutes);
+app.use(mantenimientoRoutes);
 
 //ARRANQUE DEL SERVIDOR
 app.listen(PORT, () => {

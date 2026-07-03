@@ -1,5 +1,13 @@
 import { pool } from "../../database/db.js";
 
+//Servicio que busca si ya existe una Estación de bombeo por su id
+export const SearchEstacionId = async (id_bombeo) => {
+  const [rows] = await pool.query("SELECT * FROM est_bombeo WHERE id_est = ?", [
+    id_bombeo,
+  ]);
+  return rows.length;
+};
+
 //Servicio que busca si ya existe una Bomba por su id
 export const SearchBombaId = async (id_bomba) => {
   const [rows] = await pool.query("SELECT * FROM bomba WHERE id_bomba = ?", [
@@ -160,6 +168,18 @@ export const SearchMotorCodigoId = async (codigo) => {
   const [rows] = await pool.query(
     "SELECT * FROM motor WHERE codigo_motor = ?",
     [codigo],
+  );
+  return rows;
+};
+
+// Servicio que devuelve los Motores filtrados por el ID de la Estación de Bombeo
+export const SearchMotorIdEstacion = async (id_est) => {
+  const [rows] = await pool.query(
+    `SELECT m.* FROM motor m 
+     INNER JOIN bomba b ON m.bomba_id_bomba = b.id_bomba
+     INNER JOIN linea_bombeo lb ON b.linea_bombeo_id_linea_bombeo = lb.id_linea_bombeo
+     WHERE lb.est_bombeo_id_est = ?`,
+    [id_est],
   );
   return rows;
 };

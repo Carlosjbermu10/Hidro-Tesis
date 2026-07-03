@@ -3,6 +3,7 @@ import {
   getValvula,
   getValvulaForId,
   getValvulaForIdLineaBombeo,
+  getValvulaForIdEstacion,
   postValvula,
   deleteValvula,
   updateValvula,
@@ -19,6 +20,8 @@ router.get("/valvula", checkAuth, getValvula);
 router.get("/valvula/:id", checkAuth, getValvulaForId);
 
 router.get("/valvula/linea_bombeo/:id", checkAuth, getValvulaForIdLineaBombeo);
+
+router.get("/valvula/estacion/:id", checkAuth, getValvulaForIdEstacion);
 
 //RUTAS DE CREACIÓN Y EDICIÓN (Solo Admin y Supervisor)
 router.post(

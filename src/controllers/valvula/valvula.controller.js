@@ -1,4 +1,5 @@
 import {
+  SearchEstacionId, //Servicio que busca si ya existe una Estacion de bombeo por su id
   SearchLinea_BombeoId, //Servicio que busca si ya existe una Linea de bombeo por su id
   getAllValvula, //Servicio que devuelve todos las Valvulas
   SearchValvulaId, //Servicio que busca si ya existe una valvula por su id
@@ -7,6 +8,7 @@ import {
   RegisterValvula, // Servicio para registrar una Valvula
   deleteOneValvulaForId, // Servicio que Elimina la Valvula con ese id
   modificarValvula, // Servicio para modiciar una Valvula
+  SearchValvulaIdEstacion, // Servicio que devuelve las Válvulas filtradas por el ID de la Estación de Bombeo
 } from "../../services/valvula/valvula.service.js";
 
 // 🔗 IMPORTAMOS LA BITÁCORA
@@ -106,6 +108,36 @@ export const getValvulaForIdLineaBombeo = async (req, res) => {
     res.status(500).send({
       status: "error",
       description: "Error interno del servidor al obtener las válvulas",
+    });
+  }
+};
+
+export const getValvulaForIdEstacion = async (req, res) => {
+  try {
+    const id_estacion = req.params.id;
+
+    //Se comprueba si ya existe la Estacion de bombeo
+    const search_es = await SearchEstacionId(id_estacion);
+    if (search_es === 0) {
+      return res.status(404).send({
+        status: "mal",
+        description: "Estación de bombeo no registrada",
+      });
+    }
+
+    // Invocamos el servicio con el JOIN
+    const est_valvula = await SearchValvulaIdEstacion(id_estacion);
+
+    res.send({
+      status: "ok",
+      description: "Las Válvulas que pertenecen a esta Estación de bombeo",
+      data: est_valvula,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      description: "Error interno del servidor al buscar válvulas por estación",
     });
   }
 };

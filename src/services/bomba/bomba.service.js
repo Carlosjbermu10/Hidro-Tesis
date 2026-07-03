@@ -1,5 +1,13 @@
 import { pool } from "../../database/db.js";
 
+//Servicio que busca si ya existe una Estación de bombeo por su id
+export const SearchEstacionId = async (id_bombeo) => {
+  const [rows] = await pool.query("SELECT * FROM est_bombeo WHERE id_est = ?", [
+    id_bombeo,
+  ]);
+  return rows.length;
+};
+
 //Servicio que busca si ya existe una Linea de bombeo por su id
 export const SearchLinea_BombeoId = async (id_linea_bombeo) => {
   const [rows] = await pool.query(
@@ -119,4 +127,15 @@ export const modificarBomba = async (bomba) => {
   };
 
   return result;
+};
+
+// Servicio que devuelve las Bombas filtradas por el ID de la Estación de Bombeo
+export const SearchBombaIdEstacion = async (id_est) => {
+  const [rows] = await pool.query(
+    `SELECT b.* FROM bomba b
+     INNER JOIN linea_bombeo lb ON b.linea_bombeo_id_linea_bombeo = lb.id_linea_bombeo
+     WHERE lb.est_bombeo_id_est = ?`,
+    [id_est],
+  );
+  return rows;
 };
