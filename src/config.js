@@ -26,3 +26,10 @@ export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
 export const PAYPAL_API_CLIENT = process.env.PAYPAL_API_CLIENT;
 export const PAYPAL_API_SECRET = process.env.PAYPAL_API_SECRET;
 export const PAYPAL_API = process.env.PAYPAL_API;
+
+console.log("=== DIAGNÓSTICO DE BASE DE DATOS ===");
+console.log("HOST:", BD_HOST);
+console.log("USER:", BD_USER);
+console.log("DATABASE:", BD_DATABASE);
+console.log("PORT:", BD_PORT);
+console.log("====================================");
