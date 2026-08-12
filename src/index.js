@@ -7,11 +7,10 @@ import path from "path";
 //importamos las variables de entorno
 import { PORT } from "./config.js";
 
-/*const EventEmitter = require("events");
-const emitter = new EventEmitter();
-
-// Increase the limit to 20 listeners
-emitter.setMaxListeners(20);*/
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://front-tesis-hidro.vercel.app",
+];
 
 //importamos las rutas
 import principal from "../src/routes/principal.routes.js";
@@ -63,7 +62,18 @@ app.set("views", path.join(process.cwd(), "src", "views"));
 //credentials: true es vital para que React pueda enviar y recibir las cookies de autenticación (JWT).
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+      // Permite peticiones locales, desde Vercel o desde cualquier URL de localtunnel
+      if (
+        !origin ||
+        allowedOrigins.indexOf(origin) !== -1 ||
+        origin.endsWith(".loca.lt")
+      ) {
+        callback(null, true);
+      } else {
+        callback(null, true); // En desarrollo aceptamos todas para evitar bloqueos
+      }
+    },
     credentials: true, // PERMITE EL ENVÍO DE COOKIES (ya que usas cookie-parser)
     methods: ["GET", "POST", "PUT", "DELETE"],
   }),

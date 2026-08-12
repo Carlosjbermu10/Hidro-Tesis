@@ -1,7 +1,6 @@
 import {
   SearchUsername, //Servicio que busca si ya existe un usuario por su "username"
   ValidatePassword, //Servicio que valida la contraseña del usuario con la de la bd
-  returnID, //Servicio que devuelve los datos del usuario por el id
 } from "../../services/usuario/login.services.js";
 
 import { TokenSign } from "../../helpers/GenerateToken.js";
@@ -30,7 +29,7 @@ export const postLogin = async (req, res) => {
     if (!usuario) {
       return res.status(401).send({
         status: "mal",
-        description: "Nombre de usuario o contraseña incorrectos. usu",
+        description: "Nombre de usuario o contraseña incorrectos.",
       });
     }
 
@@ -49,7 +48,7 @@ export const postLogin = async (req, res) => {
     if (!claveCorrecta) {
       return res.status(401).send({
         status: "mal",
-        description: "Nombre de usuario o contraseña incorrectos. con",
+        description: "Nombre de usuario o contraseña incorrectos.",
       });
     }
 

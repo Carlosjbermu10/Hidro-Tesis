@@ -4,7 +4,6 @@ import { fileURLToPath } from "url";
 import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
-
 const __dirname = path.dirname(__filename);
 
 // Asegurarnos de que la carpeta temporal exista para que no de error

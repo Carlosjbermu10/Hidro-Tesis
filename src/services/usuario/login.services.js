@@ -18,12 +18,3 @@ export const ValidatePassword = async (username, password) => {
   ]);
   return await bcryptjs.compare(password, rows[0].password);
 };
-
-//Servicio que devuelve los datos del usuario por el id
-export const returnID = async (id) => {
-  const [rows] = await pool.query(
-    "SELECT id_usuario, nombre_completo, username, rol FROM usuario WHERE id_usuario = ?",
-    [id],
-  );
-  return rows;
-};
