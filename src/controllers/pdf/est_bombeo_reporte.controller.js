@@ -11,6 +11,18 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Banderas optimizadas de Puppeteer para entornos reducidos como Render
+const PUPPETEER_ARGS = [
+  "--no-sandbox",
+  "--disable-setuid-sandbox",
+  "--disable-dev-shm-usage", // EVITA QUE CHROMIUM SE QUEDE SIN MEMORIA
+  "--disable-accelerated-2d-canvas",
+  "--disable-gpu",
+  "--no-first-run",
+  "--no-zygote",
+  "--single-process",
+];
+
 export const exportEstacionesPDF = async (req, res) => {
   try {
     // 1. Obtener los datos cruzados con el nuevo query relacional
@@ -63,12 +75,12 @@ export const exportEstacionesPDF = async (req, res) => {
 
     // 7. Iniciar Renderizador en segundo plano (Puppeteer)
     const browser = await puppeteer.launch({
-      headless: "new",
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: true,
+      args: PUPPETEER_ARGS,
     });
 
     const page = await browser.newPage();
-    await page.setContent(htmlRenderizado, { waitUntil: "networkidle0" });
+    await page.setContent(htmlRenderizado, { waitUntil: "domcontentloaded" });
 
     // 8. Generar el PDF físico en formato Horizontal
     const pdfBuffer = await page.pdf({
@@ -169,14 +181,14 @@ export const generarPdfEstacion = async (req, res) => {
 
         // 4. Inicializar Puppeteer para la conversión a PDF de alta fidelidad
         const browser = await puppeteer.launch({
-          headless: "new",
-          args: ["--no-sandbox", "--disable-setuid-sandbox"],
+          headless: true,
+          args: PUPPETEER_ARGS,
         });
 
         const page = await browser.newPage();
 
         // Seteamos el HTML compilado por EJS
-        await page.setContent(htmlContenido, { waitUntil: "networkidle0" });
+        await page.setContent(htmlContenido, { waitUntil: "domcontentloaded" });
 
         // Generamos el PDF con orientación horizontal para mantener la uniformidad
         const pdfBuffer = await page.pdf({
