@@ -1,9 +1,11 @@
 import { Router } from "express";
 import {
   getEstacion,
+  getInactivas,
   getEstacionForId,
   postEstacion,
   deleteEstacion,
+  reactivateEstacion,
   updateEstacion,
 } from "../../controllers/EstacionBombeo/est_bombeo.controller.js";
 
@@ -16,6 +18,9 @@ const router = Router();
 
 //RUTAS DE LECTURA (Acceso para todo el personal logueado)
 router.get("/estaciones", checkAuth, getEstacion);
+
+// Obtener estaciones inactivas
+router.get("/estacion/inactivas", checkAuth, getInactivas);
 
 router.get("/estacion/gestion/:id", checkAuth, getEstacionForId);
 
@@ -34,7 +39,15 @@ router.put(
   updateEstacion,
 );
 
-//RUTA DE ELIMINACIÓN (Estricta: Solo Admin)
+// RUTA DE REACTIVACIÓN (Solo Admin )
+router.patch(
+  "/estacion/reactivar/:id",
+  checkAuth,
+  checkRole(["admin"]),
+  reactivateEstacion,
+);
+
+//RUTA DE DESAHABILITACION (Estricta: Solo Admin)
 router.delete(
   "/estacion/delete/:id",
   checkAuth,

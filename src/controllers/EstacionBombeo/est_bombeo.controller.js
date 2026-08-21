@@ -1,10 +1,13 @@
 import {
-  getAllEstacion, //Servicio que devuelve todas las Estaciones de bombeo
+  getAllEstacion, //Servicio que devuelve todas las Estaciones de bombeo activas
+  getEstacionesInactivas, //Servicio que devuelve las Estaciones de bombeo inactivas
+  enableOneEstacionForId, //Servicio que reactiva una Estación de bombeo por su id
   SearchEstacionId, //Servicio que busca si ya existe una Estacion de bombeo por su id
   getOneEstacionForId, //Servicio que devuelve una Estacion de bombeo por su id
   SearchEstacionCodigo, //Servicio que busca si ya existe una Estacion de bombeo por su codigo
   RegisterEstacion, // Servicio para registrar una Estacion de bombeo
   deleteOneEstacionForId, // Servicio que Elimina la Estación de bombeo con ese id
+  disableOneEstacionForId, // Servicio que deshabilita (borrado lógico) una Estación de bombeo por su id
   modificarEstacion, // Servicio para modiciar una Estación de bombeo
   SearchEstacionCodigoId, // Servicio que compara el id de una Estación de bombeo con el codigo
 } from "../../services/EstacionBombeo/est_bombeo.service.js";
@@ -72,6 +75,20 @@ export const getEstacionForId = async (req, res) => {
   }
 };
 
+export const getInactivas = async (req, res) => {
+  try {
+    const estacionesInactivas = await getEstacionesInactivas(); // Tu servicio ya creado
+    res.send(estacionesInactivas);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      title: "Error del Servidor",
+      description: "No se pudieron obtener las estaciones inactivas.",
+    });
+  }
+};
+
 export const postEstacion = async (req, res) => {
   try {
     const { body } = req;
@@ -89,9 +106,9 @@ export const postEstacion = async (req, res) => {
     const search_co = await SearchEstacionCodigo(body.codigo);
     if (search_co > 0) {
       return res.status(409).send({
-        status: "mal",
-        description:
-          "El código de la Estación de Bombeo ya se encuentra registrado",
+        status: "error",
+        title: "Código en Uso",
+        description: `El código "${body.codigo}" ya pertenece a otra estación de bombeo. Ingrese un identificador diferente.`,
       });
     }
 
@@ -137,41 +154,90 @@ export const deleteEstacion = async (req, res) => {
     // se reciben la variable que viene por parametro
     const id_bombeo = req.params.id;
 
-    //Se comprueba si ya existe la Estaciones de bombeo y traemos sus datos antes de borrarla
+    //Se comprueba si ya existe la Estaciones de bombeo y traemos sus datos antes de deshabilitarla
     // para poder poner el nombre real en la descripción de la bitácora
-    const estacionAELiminar = await getOneEstacionForId(id_bombeo);
-    if (!estacionAELiminar || estacionAELiminar.length === 0) {
+    const estacionADeshabilitar = await getOneEstacionForId(id_bombeo);
+    if (!estacionADeshabilitar || estacionADeshabilitar.length === 0) {
       return res.status(404).send({
         status: "mal",
+        title: "Estación No Encontrada",
         description: "Estación de bombeo no registrada",
       });
     }
 
-    //se invoca el servicio que Elimina la Estación de bombeo con ese id
-    await deleteOneEstacionForId(id_bombeo);
+    // Se invoca el servicio que deshabilita la Estación de bombeo con ese id
+    await disableOneEstacionForId(id_bombeo);
 
-    // 🌟 REGISTRO EN BITÁCORA
+    // 🌟 REGISTRO EN BITÁCORA: DESHABILITAR
     const idUsuario = req.user ? req.user.id_usuario : 1;
-    const nombreEstacion = estacionAELiminar[0].nombre_est;
-    const codigoEstacion = estacionAELiminar[0].codigo;
+    const nombreEstacion = estacionADeshabilitar[0].nombre_est;
+    const codigoEstacion = estacionADeshabilitar[0].codigo;
 
     await InsertarBitacora(
       idUsuario,
-      "ELIMINAR",
+      "DESHABILITAR",
       "estaciones",
       codigoEstacion,
-      `Eliminó la estación de bombeo: ${nombreEstacion} (Código: ${codigoEstacion})`,
+      `Deshabilitó la estación de bombeo: ${nombreEstacion} (Código: ${codigoEstacion})`,
     );
 
     res.send({
       status: "ok",
-      description: "Estación de bombeo eliminada correctamente",
+      title: "Estación Deshabilitada",
+      description:
+        "Estación de bombeo deshabilitada correctamente. Sus datos e historial se han conservado.",
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
       status: "error",
-      description: "Error interno del servidor al eliminar la estación",
+      title: "Error del Servidor",
+      description: "Error interno del servidor al deshabilitar la estación",
+    });
+  }
+};
+
+export const reactivateEstacion = async (req, res) => {
+  try {
+    const id_bombeo = req.params.id;
+
+    // Buscamos los datos para la bitácora
+    const estacionAReactivar = await getOneEstacionForId(id_bombeo);
+    if (!estacionAReactivar || estacionAReactivar.length === 0) {
+      return res.status(404).send({
+        status: "mal",
+        title: "Estación No Encontrada",
+        description: "Estación de bombeo no registrada",
+      });
+    }
+
+    // Ejecutamos la reactivación
+    await enableOneEstacionForId(id_bombeo);
+
+    // 🌟 REGISTRO EN BITÁCORA: REACTIVAR
+    const idUsuario = req.user ? req.user.id_usuario : 1;
+    const nombreEstacion = estacionAReactivar[0].nombre_est;
+    const codigoEstacion = estacionAReactivar[0].codigo;
+
+    await InsertarBitacora(
+      idUsuario,
+      "REACTIVAR",
+      "estaciones",
+      codigoEstacion,
+      `Reactivó la estación de bombeo: ${nombreEstacion} (Código: ${codigoEstacion})`,
+    );
+
+    res.send({
+      status: "ok",
+      title: "Estación Reactivada",
+      description: "La estación ha vuelto a estar operativa en el sistema.",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      title: "Error del Servidor",
+      description: "Error interno al reactivar la estación.",
     });
   }
 };
@@ -204,9 +270,9 @@ export const updateEstacion = async (req, res) => {
       const searchCodigoId = await SearchEstacionCodigoId(body.codigo);
       if (searchCodigoId && searchCodigoId.length > 0) {
         return res.status(409).send({
-          status: "mal",
-          description:
-            "No se puede actualizar: El nuevo código ya pertenece a otra Estación de Bombeo",
+          status: "error",
+          title: "Código en Uso",
+          description: `El código "${body.codigo}" ya pertenece a otra estación de bombeo. Ingrese un identificador diferente.`,
         });
       }
     }

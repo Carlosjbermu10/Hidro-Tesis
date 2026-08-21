@@ -75,7 +75,7 @@ app.use(
       }
     },
     credentials: true, // PERMITE EL ENVÍO DE COOKIES (ya que usas cookie-parser)
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   }),
 );
 

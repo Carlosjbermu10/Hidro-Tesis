@@ -41,6 +41,18 @@ export const SearchLinea_BombeoIdEstacion = async (id_bombeo) => {
   return rows;
 };
 
+// Servicio que busca si un número de línea ya existe DENTRO de una misma estación
+export const SearchLinea_BombeoNumeroPorEstacion = async (
+  numero_linea,
+  id_bombeo,
+) => {
+  const [rows] = await pool.query(
+    "SELECT * FROM linea_bombeo WHERE numero_linea = ? AND est_bombeo_id_est = ?",
+    [numero_linea, id_bombeo],
+  );
+  return rows;
+};
+
 //Servicio para registrar una Linea de Bombeo
 export const RegisterLinea_Bombeo = async (nuevaLinea) => {
   const {

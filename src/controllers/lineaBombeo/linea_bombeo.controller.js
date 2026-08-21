@@ -4,6 +4,7 @@ import {
   SearchLinea_BombeoId, //Servicio que busca si ya existe una Linea de Bombeo por su id
   SearchLinea_BombeoIdEstacion, //Servicio que busca las Lineas de Bombeo en una Estacion de bombeo
   getOneLinea_BombeoForId, //Servicio que devuelve una Linea de Bombeo por su id
+  SearchLinea_BombeoNumeroPorEstacion, //Servicio que busca si un número de línea ya existe DENTRO de una misma estación
   RegisterLinea_Bombeo, // Servicio para registrar una Linea de Bombeo
   deleteOneLinea_BombeoForId, // Servicio que Elimina la Linea de Bombeo con ese id
   modificarLinea_Bombeo, // Servicio para modiciar una Linea de Bombeo
@@ -126,6 +127,19 @@ export const postLinea_Bombeo = async (req, res) => {
       });
     }
 
+    // 🔒 VALIDACIÓN DE NÚMERO DUPLICADO EN LA MISMA ESTACIÓN
+    const existeNumero = await SearchLinea_BombeoNumeroPorEstacion(
+      body.numero_linea,
+      id_bombeo,
+    );
+    if (existeNumero && existeNumero.length > 0) {
+      return res.status(409).send({
+        status: "mal",
+        title: "Número de Línea en Uso",
+        description: `Esta estación de bombeo ya tiene registrada la Línea #${body.numero_linea}. Ingrese un número diferente.`,
+      });
+    }
+
     //Se crea un objeto para pasarlo mas adelante
     const nuevaLinea = {
       numero_linea: body.numero_linea,
@@ -231,6 +245,21 @@ export const updateLinea_Bombeo = async (req, res) => {
         status: "mal",
         description: "Linea de Bombeo no registrada",
       });
+    }
+
+    // 🔒 VALIDACIÓN: Solo si el usuario modificó el número de línea
+    if (Number(body.numero_linea) !== Number(oneLinea[0].numero_linea)) {
+      const existeNumero = await SearchLinea_BombeoNumeroPorEstacion(
+        body.numero_linea,
+        oneLinea[0].est_bombeo_id_est,
+      );
+      if (existeNumero && existeNumero.length > 0) {
+        return res.status(409).send({
+          status: "mal",
+          title: "Número de Línea en Uso",
+          description: `Esta estación de bombeo ya posee la Línea #${body.numero_linea}.`,
+        });
+      }
     }
 
     //Se crea un objeto para pasarlo mas adelante

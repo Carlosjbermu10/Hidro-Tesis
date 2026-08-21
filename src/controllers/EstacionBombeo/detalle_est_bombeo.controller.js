@@ -115,7 +115,7 @@ export const postDetalle_Estacion = async (req, res) => {
       return res.status(400).send({
         status: "mal",
         description:
-          "Faltan ingresar campos obligatorios de los detalles técnicos",
+          "Faltan ingresar campos obligatorios de los detalles técnicosss",
       });
     }
 
@@ -308,7 +308,7 @@ export const updateDetalle_Estacion = async (req, res) => {
       est_bombeo_id_est: id_bombeo,
     };
 
-    const de = await modificarDetailEstacion(detalleEst);
+    const de = await modificarDetalleEstacion(detalleEst);
 
     // 🌟 REGISTRO EN BITÁCORA: MODIFICAR DETALLES (El corazón del mapa interactivo)
     const idUsuario = req.user ? req.user.id_usuario : 1;
